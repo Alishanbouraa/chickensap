@@ -1,12 +1,12 @@
 ﻿using PoultrySlaughterPOS.Models;
 
-namespace PoultrySlaughterPOS.Repositories
+namespace PoultrySlaughterPOS.Services.Repositories
 {
     /// <summary>
     /// Customer repository interface providing comprehensive customer account management operations.
     /// Implements advanced financial tracking, debt management, and customer analytics for POS operations.
     /// </summary>
-    public interface ICustomerRepository : IBaseRepository<Customer, int>
+    public interface ICustomerRepository : IRepository<Customer>
     {
         // Core customer management operations
         Task<IEnumerable<Customer>> GetActiveCustomersAsync(CancellationToken cancellationToken = default);

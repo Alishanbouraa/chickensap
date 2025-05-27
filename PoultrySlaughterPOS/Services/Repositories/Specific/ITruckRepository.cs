@@ -1,12 +1,12 @@
 ﻿using PoultrySlaughterPOS.Models;
 
-namespace PoultrySlaughterPOS.Repositories
+namespace PoultrySlaughterPOS.Services.Repositories
 {
     /// <summary>
     /// Truck repository interface providing domain-specific operations for truck management.
     /// Extends base repository with specialized queries for truck loading and performance tracking.
     /// </summary>
-    public interface ITruckRepository : IBaseRepository<Truck, int>
+    public interface ITruckRepository : IRepository<Truck>
     {
         // Domain-specific queries for truck operations
         Task<IEnumerable<Truck>> GetActiveTrucksAsync(CancellationToken cancellationToken = default);

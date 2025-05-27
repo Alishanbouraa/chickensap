@@ -1,13 +1,13 @@
 ﻿using PoultrySlaughterPOS.Models;
 
-namespace PoultrySlaughterPOS.Repositories
+namespace PoultrySlaughterPOS.Services.Repositories
 {
     /// <summary>
     /// Invoice repository interface providing comprehensive sales transaction management.
     /// Implements high-performance invoice processing, financial calculations, and business intelligence
     /// optimized for concurrent multi-terminal POS operations with transactional integrity.
     /// </summary>
-    public interface IInvoiceRepository : IBaseRepository<Invoice, int>
+    public interface IInvoiceRepository : IRepository<Invoice>
     {
         // Core invoice operations for POS transactions
         Task<Invoice?> GetInvoiceByNumberAsync(string invoiceNumber, CancellationToken cancellationToken = default);

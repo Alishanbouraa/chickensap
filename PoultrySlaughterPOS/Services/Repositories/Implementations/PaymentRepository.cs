@@ -2,9 +2,10 @@
 using Microsoft.Extensions.Logging;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
+using PoultrySlaughterPOS.Repositories;
 using System.Linq.Expressions;
 
-namespace PoultrySlaughterPOS.Repositories
+namespace PoultrySlaughterPOS.Services.Repositories.Implementations
 {
     /// <summary>
     /// Payment repository implementation providing secure payment processing and financial management.
@@ -747,8 +748,8 @@ namespace PoultrySlaughterPOS.Repositories
                 query = query.Where(p =>
                     p.Customer.CustomerName.ToLower().Contains(lowerSearchTerm) ||
                     p.PaymentMethod.ToLower().Contains(lowerSearchTerm) ||
-                    (p.Invoice != null && p.Invoice.InvoiceNumber.ToLower().Contains(lowerSearchTerm)) ||
-                    (p.Notes != null && p.Notes.ToLower().Contains(lowerSearchTerm)));
+                    p.Invoice != null && p.Invoice.InvoiceNumber.ToLower().Contains(lowerSearchTerm) ||
+                    p.Notes != null && p.Notes.ToLower().Contains(lowerSearchTerm));
 
                 return await query
                     .OrderByDescending(p => p.PaymentDate)
@@ -861,8 +862,8 @@ namespace PoultrySlaughterPOS.Repositories
                     .GroupBy(p => new { p.CustomerId, p.Customer.CustomerName })
                     .Select(g => new
                     {
-                        CustomerId = g.Key.CustomerId,
-                        CustomerName = g.Key.CustomerName,
+                        g.Key.CustomerId,
+                        g.Key.CustomerName,
                         AveragePayment = g.Average(p => p.Amount),
                         PaymentFrequency = g.Count()
                     })
@@ -894,8 +895,8 @@ namespace PoultrySlaughterPOS.Repositories
                     .GroupBy(p => new { p.CustomerId, p.PaymentDate.Date })
                     .Select(g => new
                     {
-                        CustomerId = g.Key.CustomerId,
-                        Date = g.Key.Date,
+                        g.Key.CustomerId,
+                        g.Key.Date,
                         Amount = g.Sum(p => p.Amount)
                     })
                     .ToListAsync(cancellationToken)

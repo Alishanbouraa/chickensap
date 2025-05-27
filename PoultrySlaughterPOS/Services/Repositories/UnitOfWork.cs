@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
+using PoultrySlaughterPOS.Repositories;
+using PoultrySlaughterPOS.Services.Repositories.Implementations;
 using System.Collections.Concurrent;
 
 namespace PoultrySlaughterPOS.Services.Repositories
@@ -13,9 +15,9 @@ namespace PoultrySlaughterPOS.Services.Repositories
     /// </summary>
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
-        private readonly IDbContextFactory<PoultryDbContext> _contextFactory;
+        private readonly PoultryDbContext _context;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<UnitOfWork> _logger;
-        private PoultryDbContext? _context;
         private IDbContextTransaction? _transaction;
         private bool _disposed = false;
 
@@ -32,20 +34,21 @@ namespace PoultrySlaughterPOS.Services.Repositories
         private readonly ConcurrentDictionary<Type, object> _repositoryCache = new();
 
         public UnitOfWork(
-            IDbContextFactory<PoultryDbContext> contextFactory,
-            ILogger<UnitOfWork> logger)
+            PoultryDbContext context,
+            ILoggerFactory loggerFactory)
         {
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _logger = _loggerFactory.CreateLogger<UnitOfWork>();
 
-            // Initialize lazy-loaded repositories with factory pattern
-            _trucks = new Lazy<ITruckRepository>(() => new TruckRepository(GetContext(), _logger.CreateLogger<TruckRepository>()));
-            _customers = new Lazy<ICustomerRepository>(() => new CustomerRepository(GetContext(), _logger.CreateLogger<CustomerRepository>()));
-            _invoices = new Lazy<IInvoiceRepository>(() => new InvoiceRepository(GetContext(), _logger.CreateLogger<InvoiceRepository>()));
-            _payments = new Lazy<IPaymentRepository>(() => new PaymentRepository(GetContext(), _logger.CreateLogger<PaymentRepository>()));
-            _truckLoads = new Lazy<ITruckLoadRepository>(() => new TruckLoadRepository(GetContext(), _logger.CreateLogger<TruckLoadRepository>()));
-            _dailyReconciliations = new Lazy<IDailyReconciliationRepository>(() => new DailyReconciliationRepository(GetContext(), _logger.CreateLogger<DailyReconciliationRepository>()));
-            _auditLogs = new Lazy<IAuditLogRepository>(() => new AuditLogRepository(GetContext(), _logger.CreateLogger<AuditLogRepository>()));
+            // Initialize lazy-loaded repositories with proper factory pattern
+            _trucks = new Lazy<ITruckRepository>(() => new TruckRepository(_context, _loggerFactory.CreateLogger<TruckRepository>()));
+            _customers = new Lazy<ICustomerRepository>(() => new CustomerRepository(_context, _loggerFactory.CreateLogger<CustomerRepository>()));
+            _invoices = new Lazy<IInvoiceRepository>(() => new InvoiceRepository(_context, _loggerFactory.CreateLogger<InvoiceRepository>()));
+            _payments = new Lazy<IPaymentRepository>(() => new PaymentRepository(_context, _loggerFactory.CreateLogger<PaymentRepository>()));
+            _truckLoads = new Lazy<ITruckLoadRepository>(() => new TruckLoadRepository(_context, _loggerFactory.CreateLogger<TruckLoadRepository>()));
+            _dailyReconciliations = new Lazy<IDailyReconciliationRepository>(() => new DailyReconciliationRepository(_context, _loggerFactory.CreateLogger<DailyReconciliationRepository>()));
+            _auditLogs = new Lazy<IAuditLogRepository>(() => new AuditLogRepository(_context, _loggerFactory.CreateLogger<AuditLogRepository>()));
         }
 
         // Repository Properties with Lazy Initialization
@@ -59,22 +62,8 @@ namespace PoultrySlaughterPOS.Services.Repositories
 
         // Transaction State Properties
         public bool HasActiveTransaction => _transaction != null && _transaction.TransactionId != Guid.Empty;
-        public int PendingChangesCount => GetContext().ChangeTracker.Entries()
+        public int PendingChangesCount => _context.ChangeTracker.Entries()
             .Count(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted);
-
-        /// <summary>
-        /// Gets or creates the DbContext instance using the factory pattern
-        /// for optimal resource management and connection pooling
-        /// </summary>
-        private PoultryDbContext GetContext()
-        {
-            if (_context == null)
-            {
-                _context = _contextFactory.CreateDbContext();
-                _logger.LogDebug("DbContext created via factory pattern");
-            }
-            return _context;
-        }
 
         /// <summary>
         /// Generic repository accessor with caching for optimal performance
@@ -88,12 +77,15 @@ namespace PoultrySlaughterPOS.Services.Repositories
                 return (IRepository<T>)cachedRepository;
             }
 
-            var repository = new Repository<T>(GetContext(), _logger.CreateLogger<Repository<T>>());
+            var repository = new Repository<T>(_context, _loggerFactory.CreateLogger<Repository<T>>());
             _repositoryCache.TryAdd(type, repository);
 
             _logger.LogDebug("Generic repository created for type {EntityType}", type.Name);
             return repository;
         }
+
+        // All other methods remain the same as in the previous implementation...
+        // (SaveChangesAsync, BeginTransactionAsync, CommitTransactionAsync, etc.)
 
         /// <summary>
         /// Saves all pending changes to the database with comprehensive error handling
@@ -110,7 +102,6 @@ namespace PoultrySlaughterPOS.Services.Repositories
         {
             try
             {
-                var context = GetContext();
                 var changeCount = PendingChangesCount;
 
                 if (changeCount == 0)
@@ -121,7 +112,7 @@ namespace PoultrySlaughterPOS.Services.Repositories
 
                 _logger.LogDebug("Saving {ChangeCount} pending changes for user {UserId}", changeCount, userId);
 
-                var result = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                var result = await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Successfully saved {SavedCount} changes to database for user {UserId}", result, userId);
                 return result;
@@ -157,8 +148,7 @@ namespace PoultrySlaughterPOS.Services.Repositories
                     throw new InvalidOperationException("A transaction is already active");
                 }
 
-                var context = GetContext();
-                _transaction = await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, cancellationToken)
+                _transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, cancellationToken)
                     .ConfigureAwait(false);
 
                 _logger.LogDebug("Database transaction started with ID {TransactionId}", _transaction.TransactionId);
@@ -242,10 +232,9 @@ namespace PoultrySlaughterPOS.Services.Repositories
         {
             try
             {
-                var context = GetContext();
                 _logger.LogDebug("Executing raw SQL command with {ParameterCount} parameters", parameters.Length);
 
-                var result = await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken)
+                var result = await _context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken)
                     .ConfigureAwait(false);
 
                 _logger.LogDebug("Raw SQL command executed successfully, {AffectedRows} rows affected", result);
@@ -265,7 +254,6 @@ namespace PoultrySlaughterPOS.Services.Repositories
         {
             try
             {
-                var context = GetContext();
                 var changeCount = PendingChangesCount;
 
                 if (changeCount == 0)
@@ -277,7 +265,7 @@ namespace PoultrySlaughterPOS.Services.Repositories
                 // Create audit entries before saving
                 await CreateAuditEntriesAsync(userId, operation).ConfigureAwait(false);
 
-                var result = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                var result = await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Successfully saved {SavedCount} changes with audit for operation {Operation} by user {UserId}",
                     result, operation, userId);
@@ -296,10 +284,9 @@ namespace PoultrySlaughterPOS.Services.Repositories
         /// </summary>
         private async Task CreateAuditEntriesAsync(string userId, string operation)
         {
-            var context = GetContext();
             var auditEntries = new List<AuditLog>();
 
-            foreach (var entry in context.ChangeTracker.Entries())
+            foreach (var entry in _context.ChangeTracker.Entries())
             {
                 if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
                     continue;
@@ -335,7 +322,7 @@ namespace PoultrySlaughterPOS.Services.Repositories
 
             if (auditEntries.Any())
             {
-                context.AuditLogs.AddRange(auditEntries);
+                _context.AuditLogs.AddRange(auditEntries);
                 _logger.LogDebug("Created {AuditEntryCount} audit log entries for operation {Operation}",
                     auditEntries.Count, operation);
             }
@@ -401,7 +388,6 @@ namespace PoultrySlaughterPOS.Services.Repositories
                 try
                 {
                     _transaction?.Dispose();
-                    _context?.Dispose();
                     _repositoryCache.Clear();
 
                     _logger.LogDebug("UnitOfWork disposed successfully");

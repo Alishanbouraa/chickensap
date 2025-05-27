@@ -4,23 +4,19 @@ using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
 using System.Linq.Expressions;
 
-namespace PoultrySlaughterPOS.Repositories
+namespace PoultrySlaughterPOS.Services.Repositories
 {
     /// <summary>
     /// Customer repository implementation providing comprehensive customer account management.
     /// Implements sophisticated financial tracking, debt management, and business intelligence operations
     /// optimized for high-performance POS environments with concurrent access patterns.
     /// </summary>
-    public class CustomerRepository : BaseRepository<Customer, int>, ICustomerRepository
+    public class CustomerRepository : Repository<Customer>, ICustomerRepository
     {
-        public CustomerRepository(IDbContextFactory<PoultryDbContext> contextFactory, ILogger<CustomerRepository> logger)
-            : base(contextFactory, logger)
+        public CustomerRepository(PoultryDbContext context, ILogger<CustomerRepository> logger)
+            : base(context, logger)
         {
         }
-
-        protected override DbSet<Customer> GetDbSet(PoultryDbContext context) => context.Customers;
-
-        protected override Expression<Func<Customer, bool>> GetByIdPredicate(int id) => customer => customer.CustomerId == id;
 
         #region Core Customer Management
 
@@ -28,10 +24,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Where(c => c.IsActive)
                     .OrderBy(c => c.CustomerName)
                     .ToListAsync(cancellationToken)
@@ -48,10 +41,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .FirstOrDefaultAsync(c => c.CustomerName.ToLower() == customerName.ToLower(), cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -66,10 +56,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -84,10 +71,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Include(c => c.Invoices.OrderByDescending(i => i.InvoiceDate).Take(50))
                     .Include(c => c.Payments.OrderByDescending(p => p.PaymentDate).Take(50))
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
@@ -108,10 +92,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Where(c => c.IsActive && c.TotalDebt > 0)
                     .OrderByDescending(c => c.TotalDebt)
                     .ToListAsync(cancellationToken)
@@ -128,10 +109,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Where(c => c.IsActive && c.TotalDebt >= threshold)
                     .OrderByDescending(c => c.TotalDebt)
                     .ToListAsync(cancellationToken)
@@ -148,10 +126,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var customer = await context.Customers
-                    .AsNoTracking()
+                var customer = await _dbSet
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -168,9 +143,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var customer = await context.Customers
+                var customer = await _dbSet
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -183,7 +156,7 @@ namespace PoultrySlaughterPOS.Repositories
                 customer.TotalDebt += amount;
                 customer.UpdatedDate = DateTime.Now;
 
-                var rowsAffected = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                var rowsAffected = await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Updated balance for customer {CustomerId} by {Amount}. New balance: {NewBalance}",
                     customerId, amount, customer.TotalDebt);
@@ -201,10 +174,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var debtSummary = await context.Customers
-                    .AsNoTracking()
+                var debtSummary = await _dbSet
                     .Where(c => c.IsActive && c.TotalDebt > 0)
                     .GroupBy(c => 1)
                     .Select(g => new { TotalDebt = g.Sum(c => c.TotalDebt), CustomerCount = g.Count() })
@@ -228,10 +198,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Invoices
-                    .AsNoTracking()
+                var query = _context.Invoices
                     .Where(i => i.CustomerId == customerId);
 
                 if (fromDate.HasValue)
@@ -257,10 +224,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Payments
-                    .AsNoTracking()
+                var query = _context.Payments
                     .Where(p => p.CustomerId == customerId);
 
                 if (fromDate.HasValue)
@@ -286,11 +250,9 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 // Build base queries
-                var invoiceQuery = context.Invoices.AsNoTracking().Where(i => i.CustomerId == customerId);
-                var paymentQuery = context.Payments.AsNoTracking().Where(p => p.CustomerId == customerId);
+                var invoiceQuery = _context.Invoices.Where(i => i.CustomerId == customerId);
+                var paymentQuery = _context.Payments.Where(p => p.CustomerId == customerId);
 
                 // Apply date filters
                 if (fromDate.HasValue)
@@ -334,12 +296,9 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 var lowerSearchTerm = searchTerm.ToLower();
 
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Where(c => c.IsActive &&
                                (c.CustomerName.ToLower().Contains(lowerSearchTerm) ||
                                 (c.PhoneNumber != null && c.PhoneNumber.Contains(searchTerm)) ||
@@ -359,10 +318,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Where(c => c.IsActive == isActive)
                     .OrderBy(c => c.CustomerName)
                     .ToListAsync(cancellationToken)
@@ -379,9 +335,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Customers.AsNoTracking();
+                var query = _dbSet.AsQueryable();
 
                 // Apply filters
                 if (isActive.HasValue)
@@ -424,13 +378,8 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Customers
-                    .AsNoTracking()
-                    .Where(c => c.IsActive);
-
-                var invoiceQuery = context.Invoices.AsNoTracking();
+                var query = _dbSet.Where(c => c.IsActive);
+                var invoiceQuery = _context.Invoices.AsQueryable();
 
                 if (fromDate.HasValue)
                     invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -465,12 +414,9 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 var fromDate = DateTime.Today.AddMonths(-monthsBack);
 
-                var purchaseHistory = await context.Invoices
-                    .AsNoTracking()
+                var purchaseHistory = await _context.Invoices
                     .Where(i => i.CustomerId == customerId && i.InvoiceDate >= fromDate)
                     .GroupBy(i => new { Year = i.InvoiceDate.Year, Month = i.InvoiceDate.Month })
                     .Select(g => new
@@ -496,12 +442,9 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 var customerIdsList = customerIds.ToList();
 
-                var lastPayments = await context.Payments
-                    .AsNoTracking()
+                var lastPayments = await _context.Payments
                     .Where(p => customerIdsList.Contains(p.CustomerId))
                     .GroupBy(p => p.CustomerId)
                     .Select(g => new
@@ -530,12 +473,9 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 var today = DateTime.Today;
 
-                var agedReceivables = await context.Customers
-                    .AsNoTracking()
+                var agedReceivables = await _dbSet
                     .Where(c => c.IsActive && c.TotalDebt > 0)
                     .Select(c => new
                     {
@@ -563,12 +503,9 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 var cutoffDate = DateTime.Today.AddDays(-daysOverdue);
 
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .Where(c => c.IsActive &&
                                c.TotalDebt > 0 &&
                                c.Invoices.Any(i => i.InvoiceDate <= cutoffDate))
@@ -587,11 +524,8 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
                 var today = DateTime.Today;
-                var customersWithDebt = await context.Customers
-                    .AsNoTracking()
+                var customersWithDebt = await _dbSet
                     .Where(c => c.IsActive && c.TotalDebt > 0)
                     .Select(c => new
                     {
@@ -647,10 +581,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Customers.AsNoTracking()
-                    .Where(c => c.CustomerName.ToLower() == customerName.ToLower());
+                var query = _dbSet.Where(c => c.CustomerName.ToLower() == customerName.ToLower());
 
                 if (excludeCustomerId.HasValue)
                     query = query.Where(c => c.CustomerId != excludeCustomerId.Value);
@@ -668,10 +599,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Customers.AsNoTracking()
-                    .Where(c => c.PhoneNumber == phoneNumber);
+                var query = _dbSet.Where(c => c.PhoneNumber == phoneNumber);
 
                 if (excludeCustomerId.HasValue)
                     query = query.Where(c => c.CustomerId != excludeCustomerId.Value);
@@ -689,15 +617,11 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var hasTransactions = await context.Invoices
-                    .AsNoTracking()
+                var hasTransactions = await _context.Invoices
                     .AnyAsync(i => i.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
-                var hasPayments = await context.Payments
-                    .AsNoTracking()
+                var hasPayments = await _context.Payments
                     .AnyAsync(p => p.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -714,10 +638,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Customers
-                    .AsNoTracking()
+                return await _dbSet
                     .CountAsync(c => c.IsActive, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -736,10 +657,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var customersWithDiscrepancies = await context.Customers
-                    .AsNoTracking()
+                var customersWithDiscrepancies = await _dbSet
                     .Select(c => new
                     {
                         Customer = c,
@@ -763,9 +681,7 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var customer = await context.Customers
+                var customer = await _dbSet
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -775,14 +691,12 @@ namespace PoultrySlaughterPOS.Repositories
                     return false;
                 }
 
-                var totalInvoices = await context.Invoices
-                    .AsNoTracking()
+                var totalInvoices = await _context.Invoices
                     .Where(i => i.CustomerId == customerId)
                     .SumAsync(i => i.FinalAmount, cancellationToken)
                     .ConfigureAwait(false);
 
-                var totalPayments = await context.Payments
-                    .AsNoTracking()
+                var totalPayments = await _context.Payments
                     .Where(p => p.CustomerId == customerId)
                     .SumAsync(p => p.Amount, cancellationToken)
                     .ConfigureAwait(false);
@@ -795,7 +709,7 @@ namespace PoultrySlaughterPOS.Repositories
                     customer.TotalDebt = calculatedBalance;
                     customer.UpdatedDate = DateTime.Now;
 
-                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
                     _logger.LogInformation("Recalculated balance for customer {CustomerId}. Old: {OldBalance}, New: {NewBalance}",
                         customerId, oldBalance, calculatedBalance);
@@ -816,21 +730,17 @@ namespace PoultrySlaughterPOS.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var allCustomers = await context.Customers.ToListAsync(cancellationToken).ConfigureAwait(false);
+                var allCustomers = await _dbSet.ToListAsync(cancellationToken).ConfigureAwait(false);
                 var adjustments = new Dictionary<int, decimal>();
 
                 foreach (var customer in allCustomers)
                 {
-                    var totalInvoices = await context.Invoices
-                        .AsNoTracking()
+                    var totalInvoices = await _context.Invoices
                         .Where(i => i.CustomerId == customer.CustomerId)
                         .SumAsync(i => i.FinalAmount, cancellationToken)
                         .ConfigureAwait(false);
 
-                    var totalPayments = await context.Payments
-                        .AsNoTracking()
+                    var totalPayments = await _context.Payments
                         .Where(p => p.CustomerId == customer.CustomerId)
                         .SumAsync(p => p.Amount, cancellationToken)
                         .ConfigureAwait(false);
@@ -847,7 +757,7 @@ namespace PoultrySlaughterPOS.Repositories
 
                 if (adjustments.Any())
                 {
-                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                     _logger.LogInformation("Recalculated balances for {Count} customers", adjustments.Count);
                 }
 

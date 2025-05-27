@@ -1,13 +1,13 @@
 ﻿using PoultrySlaughterPOS.Models;
 
-namespace PoultrySlaughterPOS.Repositories
+namespace PoultrySlaughterPOS.Services.Repositories
 {
     /// <summary>
     /// Payment repository interface providing comprehensive payment processing and financial management.
     /// Implements secure payment operations, debt settlement tracking, and financial analytics
     /// optimized for multi-terminal POS environments with transactional integrity.
     /// </summary>
-    public interface IPaymentRepository : IBaseRepository<Payment, int>
+    public interface IPaymentRepository : IRepository<Payment>
     {
         // Core payment processing operations
         Task<Payment> CreatePaymentWithTransactionAsync(Payment payment, CancellationToken cancellationToken = default);

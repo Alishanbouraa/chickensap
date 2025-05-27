@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
 using System.Linq.Expressions;
-
+using PoultrySlaughterPOS.Services.Repositories;
 namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
