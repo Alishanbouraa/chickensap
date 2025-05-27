@@ -103,6 +103,7 @@ namespace PoultrySlaughterPOS
 
             // Register application services
             services.AddTransient<IDatabaseInitializationService, DatabaseInitializationService>();
+            services.AddScoped<IErrorHandlingService, ErrorHandlingService>();
 
             // Register UI components
             services.AddSingleton<MainWindow>();

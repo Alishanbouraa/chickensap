@@ -4,6 +4,7 @@ using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
 using System.Linq.Expressions;
 using PoultrySlaughterPOS.Services.Repositories;
+
 namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
@@ -22,8 +23,86 @@ namespace PoultrySlaughterPOS.Repositories
 
         protected override Expression<Func<Invoice, bool>> GetByIdPredicate(int id) => invoice => invoice.InvoiceId == id;
 
-        #region Core Invoice Operations
+        #region IRepository<Invoice> Base Interface Implementation
 
+        public async Task<Invoice?> GetAsync(Expression<Func<Invoice, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                return await context.Invoices.AsNoTracking()
+                    .FirstOrDefaultAsync(predicate, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving invoice with predicate");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Invoice>> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<Invoice, bool>>? filter = null,
+            Func<IQueryable<Invoice>, IOrderedQueryable<Invoice>>? orderBy = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                var query = context.Invoices.AsNoTracking();
+
+                if (filter != null)
+                    query = query.Where(filter);
+
+                IOrderedQueryable<Invoice> orderedQuery;
+                if (orderBy != null)
+                    orderedQuery = orderBy(query);
+                else
+                    orderedQuery = query.OrderByDescending(i => i.InvoiceDate);
+
+                return await orderedQuery
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving paged invoices");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<TResult>> SelectAsync<TResult>(
+            Expression<Func<Invoice, TResult>> selector,
+            Expression<Func<Invoice, bool>>? predicate = null,
+            CancellationToken cancellationToken = default) where TResult : class
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                var query = context.Invoices.AsNoTracking();
+
+                if (predicate != null)
+                    query = query.Where(predicate);
+
+                return await query
+                    .Select(selector)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error selecting projected invoice entities");
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Core Invoice Operations
 
         public async Task<Invoice?> GetInvoiceByNumberAsync(string invoiceNumber, CancellationToken cancellationToken = default)
         {
@@ -42,7 +121,6 @@ namespace PoultrySlaughterPOS.Repositories
                 throw;
             }
         }
-
 
         public async Task<Invoice?> GetInvoiceWithDetailsAsync(int invoiceId, CancellationToken cancellationToken = default)
         {
@@ -168,6 +246,33 @@ namespace PoultrySlaughterPOS.Repositories
 
         #endregion
 
+        #region Customer-Specific Invoice Operations - Fixed Implementation
+
+        public async Task<IEnumerable<Invoice>> GetCustomerOutstandingInvoicesAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var invoicesWithPayments = await context.Invoices
+                    .AsNoTracking()
+                    .Include(i => i.Payments)
+                    .Where(i => i.CustomerId == customerId)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                // Filter outstanding invoices in memory to avoid complex SQL translation
+                return invoicesWithPayments.Where(i => i.FinalAmount > i.Payments.Sum(p => p.Amount));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving outstanding invoices for customer {CustomerId}", customerId);
+                throw;
+            }
+        }
+
+        #endregion
+
         #region Daily Operations and Sales Management
 
         public async Task<IEnumerable<Invoice>> GetInvoicesByDateAsync(DateTime date, CancellationToken cancellationToken = default)
@@ -257,7 +362,7 @@ namespace PoultrySlaughterPOS.Repositories
 
         #endregion
 
-        #region Customer-Specific Invoice Operations
+        #region Customer-Specific Operations Continued
 
         public async Task<IEnumerable<Invoice>> GetCustomerInvoicesAsync(int customerId, int? limit = null, CancellationToken cancellationToken = default)
         {
@@ -281,31 +386,6 @@ namespace PoultrySlaughterPOS.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving invoices for customer {CustomerId}", customerId);
-                throw;
-            }
-        }
-
-        public async Task<IEnumerable<Invoice>> GetCustomerOutstandingInvoicesAsync(int customerId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                return await context.Invoices
-                    .AsNoTracking()
-                    .Include(i => i.Payments)
-                    .Where(i => i.CustomerId == customerId)
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false)
-                    .ContinueWith(task =>
-                    {
-                        var invoices = task.Result;
-                        return invoices.Where(i => i.FinalAmount > i.Payments.Sum(p => p.Amount));
-                    }, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving outstanding invoices for customer {CustomerId}", customerId);
                 throw;
             }
         }
@@ -695,6 +775,9 @@ namespace PoultrySlaughterPOS.Repositories
                 if (toDate.HasValue)
                     query = query.Where(i => i.InvoiceDate <= toDate.Value.Date.AddDays(1));
 
+                if (!await query.AnyAsync(cancellationToken).ConfigureAwait(false))
+                    return 0;
+
                 var avgDiscount = await query.AverageAsync(i => i.DiscountPercentage, cancellationToken).ConfigureAwait(false);
                 return avgDiscount;
             }
@@ -738,132 +821,6 @@ namespace PoultrySlaughterPOS.Repositories
                 _logger.LogError(ex, "Error analyzing price distribution from {FromDate} to {ToDate}", fromDate, toDate);
                 throw;
             }
-        }
-
-        #endregion
-
-        #region Business Validation and Integrity
-
-        public async Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Invoices.AsNoTracking().Where(i => i.InvoiceNumber == invoiceNumber);
-
-                if (excludeInvoiceId.HasValue)
-                    query = query.Where(i => i.InvoiceId != excludeInvoiceId.Value);
-
-                return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error checking if invoice number {InvoiceNumber} exists", invoiceNumber);
-                throw;
-            }
-        }
-
-        public async Task<bool> CanDeleteInvoiceAsync(int invoiceId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var hasPayments = await context.Payments
-                    .AsNoTracking()
-                    .AnyAsync(p => p.InvoiceId == invoiceId, cancellationToken)
-                    .ConfigureAwait(false);
-
-                return !hasPayments;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error checking if invoice {InvoiceId} can be deleted", invoiceId);
-                throw;
-            }
-        }
-
-        public async Task<int> GetInvoiceCountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var query = context.Invoices.AsNoTracking();
-
-                if (fromDate.HasValue)
-                    query = query.Where(i => i.InvoiceDate >= fromDate.Value);
-
-                if (toDate.HasValue)
-                    query = query.Where(i => i.InvoiceDate <= toDate.Value.Date.AddDays(1));
-
-                return await query.CountAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error counting invoices from {FromDate} to {ToDate}", fromDate, toDate);
-                throw;
-            }
-        }
-
-        #endregion
-
-        #region Private Helper Methods
-
-        private async Task<string> GenerateUniqueInvoiceNumberAsync(PoultryDbContext context, CancellationToken cancellationToken)
-        {
-            string invoiceNumber;
-            bool exists;
-            int attempts = 0;
-            const int maxAttempts = 10;
-
-            do
-            {
-                invoiceNumber = await GenerateInvoiceNumberAsync(cancellationToken).ConfigureAwait(false);
-                exists = await context.Invoices
-                    .AsNoTracking()
-                    .AnyAsync(i => i.InvoiceNumber == invoiceNumber, cancellationToken)
-                    .ConfigureAwait(false);
-
-                attempts++;
-                if (exists && attempts < maxAttempts)
-                {
-                    // Add random suffix to ensure uniqueness in high-concurrency scenarios
-                    var random = new Random();
-                    invoiceNumber += $"-{random.Next(1000, 9999)}";
-                    exists = await context.Invoices
-                        .AsNoTracking()
-                        .AnyAsync(i => i.InvoiceNumber == invoiceNumber, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            while (exists && attempts < maxAttempts);
-
-            if (exists)
-            {
-                throw new InvalidOperationException($"Unable to generate unique invoice number after {maxAttempts} attempts");
-            }
-
-            return invoiceNumber;
-        }
-
-        private static void CalculateInvoiceAmounts(Invoice invoice)
-        {
-            // Calculate net weight
-            invoice.NetWeight = invoice.GrossWeight - invoice.CagesWeight;
-
-            // Calculate total amount before discount
-            invoice.TotalAmount = invoice.NetWeight * invoice.UnitPrice;
-
-            // Apply discount
-            var discountAmount = invoice.TotalAmount * (invoice.DiscountPercentage / 100);
-            invoice.FinalAmount = invoice.TotalAmount - discountAmount;
-
-            // Ensure non-negative values
-            invoice.NetWeight = Math.Max(0, invoice.NetWeight);
-            invoice.TotalAmount = Math.Max(0, invoice.TotalAmount);
-            invoice.FinalAmount = Math.Max(0, invoice.FinalAmount);
         }
 
         #endregion
@@ -950,6 +907,73 @@ namespace PoultrySlaughterPOS.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving paged invoices. Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Business Validation and Integrity
+
+        public async Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Invoices.AsNoTracking().Where(i => i.InvoiceNumber == invoiceNumber);
+
+                if (excludeInvoiceId.HasValue)
+                    query = query.Where(i => i.InvoiceId != excludeInvoiceId.Value);
+
+                return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if invoice number {InvoiceNumber} exists", invoiceNumber);
+                throw;
+            }
+        }
+
+        public async Task<bool> CanDeleteInvoiceAsync(int invoiceId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var hasPayments = await context.Payments
+                    .AsNoTracking()
+                    .AnyAsync(p => p.InvoiceId == invoiceId, cancellationToken)
+                    .ConfigureAwait(false);
+
+                return !hasPayments;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if invoice {InvoiceId} can be deleted", invoiceId);
+                throw;
+            }
+        }
+
+        public async Task<int> GetInvoiceCountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Invoices.AsNoTracking();
+
+                if (fromDate.HasValue)
+                    query = query.Where(i => i.InvoiceDate >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(i => i.InvoiceDate <= toDate.Value.Date.AddDays(1));
+
+                return await query.CountAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting invoices from {FromDate} to {ToDate}", fromDate, toDate);
                 throw;
             }
         }
@@ -1158,6 +1182,65 @@ namespace PoultrySlaughterPOS.Repositories
                 _logger.LogError(ex, "Error calculating revenue KPIs from {FromDate} to {ToDate}", fromDate, toDate);
                 throw;
             }
+        }
+
+        #endregion
+
+        #region Private Helper Methods
+
+        private async Task<string> GenerateUniqueInvoiceNumberAsync(PoultryDbContext context, CancellationToken cancellationToken)
+        {
+            string invoiceNumber;
+            bool exists;
+            int attempts = 0;
+            const int maxAttempts = 10;
+
+            do
+            {
+                invoiceNumber = await GenerateInvoiceNumberAsync(cancellationToken).ConfigureAwait(false);
+                exists = await context.Invoices
+                    .AsNoTracking()
+                    .AnyAsync(i => i.InvoiceNumber == invoiceNumber, cancellationToken)
+                    .ConfigureAwait(false);
+
+                attempts++;
+                if (exists && attempts < maxAttempts)
+                {
+                    // Add random suffix to ensure uniqueness in high-concurrency scenarios
+                    var random = new Random();
+                    invoiceNumber += $"-{random.Next(1000, 9999)}";
+                    exists = await context.Invoices
+                        .AsNoTracking()
+                        .AnyAsync(i => i.InvoiceNumber == invoiceNumber, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            while (exists && attempts < maxAttempts);
+
+            if (exists)
+            {
+                throw new InvalidOperationException($"Unable to generate unique invoice number after {maxAttempts} attempts");
+            }
+
+            return invoiceNumber;
+        }
+
+        private static void CalculateInvoiceAmounts(Invoice invoice)
+        {
+            // Calculate net weight
+            invoice.NetWeight = invoice.GrossWeight - invoice.CagesWeight;
+
+            // Calculate total amount before discount
+            invoice.TotalAmount = invoice.NetWeight * invoice.UnitPrice;
+
+            // Apply discount
+            var discountAmount = invoice.TotalAmount * (invoice.DiscountPercentage / 100);
+            invoice.FinalAmount = invoice.TotalAmount - discountAmount;
+
+            // Ensure non-negative values
+            invoice.NetWeight = Math.Max(0, invoice.NetWeight);
+            invoice.TotalAmount = Math.Max(0, invoice.TotalAmount);
+            invoice.FinalAmount = Math.Max(0, invoice.FinalAmount);
         }
 
         #endregion
