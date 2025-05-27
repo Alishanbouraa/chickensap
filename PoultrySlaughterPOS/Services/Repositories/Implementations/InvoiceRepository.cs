@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
 using System.Linq.Expressions;
-
+using PoultrySlaughterPOS.Services.Repositories;
 namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
@@ -24,6 +24,7 @@ namespace PoultrySlaughterPOS.Repositories
 
         #region Core Invoice Operations
 
+
         public async Task<Invoice?> GetInvoiceByNumberAsync(string invoiceNumber, CancellationToken cancellationToken = default)
         {
             try
@@ -41,6 +42,7 @@ namespace PoultrySlaughterPOS.Repositories
                 throw;
             }
         }
+
 
         public async Task<Invoice?> GetInvoiceWithDetailsAsync(int invoiceId, CancellationToken cancellationToken = default)
         {

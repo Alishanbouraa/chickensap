@@ -2,8 +2,9 @@
 using Microsoft.Extensions.Logging;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
-using System.Linq.Expressions;
 using PoultrySlaughterPOS.Services.Repositories;
+using System.Linq.Expressions;
+
 namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
@@ -19,8 +20,85 @@ namespace PoultrySlaughterPOS.Repositories
         }
 
         protected override DbSet<Truck> GetDbSet(PoultryDbContext context) => context.Trucks;
-
         protected override Expression<Func<Truck, bool>> GetByIdPredicate(int id) => truck => truck.TruckId == id;
+
+        #region IRepository<Truck> Base Interface Implementation
+
+        public async Task<Truck?> GetAsync(Expression<Func<Truck, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                return await context.Trucks.AsNoTracking()
+                    .FirstOrDefaultAsync(predicate, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving truck with predicate");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Truck>> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<Truck, bool>>? filter = null,
+            Func<IQueryable<Truck>, IOrderedQueryable<Truck>>? orderBy = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                var query = context.Trucks.AsNoTracking();
+
+                if (filter != null)
+                    query = query.Where(filter);
+
+                if (orderBy != null)
+                    query = orderBy(query);
+                else
+                    query = query.OrderBy(t => t.TruckNumber);
+
+                return await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving paged trucks");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<TResult>> SelectAsync<TResult>(
+            Expression<Func<Truck, TResult>> selector,
+            Expression<Func<Truck, bool>>? predicate = null,
+            CancellationToken cancellationToken = default) where TResult : class
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                var query = context.Trucks.AsNoTracking();
+
+                if (predicate != null)
+                    query = query.Where(predicate);
+
+                return await query
+                    .Select(selector)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error selecting projected truck entities");
+                throw;
+            }
+        }
+
+        #endregion
 
         #region Domain-Specific Queries
 
@@ -284,9 +362,7 @@ namespace PoultrySlaughterPOS.Repositories
                 var query = context.Trucks.AsNoTracking().Where(t => t.TruckNumber == truckNumber);
 
                 if (excludeTruckId.HasValue)
-                {
                     query = query.Where(t => t.TruckId != excludeTruckId.Value);
-                }
 
                 return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
             }
