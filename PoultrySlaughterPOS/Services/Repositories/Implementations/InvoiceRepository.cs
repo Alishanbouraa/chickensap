@@ -51,16 +51,21 @@ namespace PoultrySlaughterPOS.Repositories
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (filter != null)
                     query = query.Where(filter);
 
+                // Fixed: Explicit LINQ ordering with proper type handling
                 IOrderedQueryable<Invoice> orderedQuery;
                 if (orderBy != null)
+                {
                     orderedQuery = orderBy(query);
+                }
                 else
+                {
                     orderedQuery = query.OrderByDescending(i => i.InvoiceDate);
+                }
 
                 return await orderedQuery
                     .Skip((pageNumber - 1) * pageSize)
@@ -83,7 +88,7 @@ namespace PoultrySlaughterPOS.Repositories
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (predicate != null)
                     query = query.Where(predicate);
@@ -246,33 +251,6 @@ namespace PoultrySlaughterPOS.Repositories
 
         #endregion
 
-        #region Customer-Specific Invoice Operations - Fixed Implementation
-
-        public async Task<IEnumerable<Invoice>> GetCustomerOutstandingInvoicesAsync(int customerId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-
-                var invoicesWithPayments = await context.Invoices
-                    .AsNoTracking()
-                    .Include(i => i.Payments)
-                    .Where(i => i.CustomerId == customerId)
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                // Filter outstanding invoices in memory to avoid complex SQL translation
-                return invoicesWithPayments.Where(i => i.FinalAmount > i.Payments.Sum(p => p.Amount));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving outstanding invoices for customer {CustomerId}", customerId);
-                throw;
-            }
-        }
-
-        #endregion
-
         #region Daily Operations and Sales Management
 
         public async Task<IEnumerable<Invoice>> GetInvoicesByDateAsync(DateTime date, CancellationToken cancellationToken = default)
@@ -336,7 +314,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices
+                IQueryable<Invoice> query = context.Invoices
                     .AsNoTracking()
                     .Include(i => i.Customer)
                     .Where(i => i.TruckId == truckId);
@@ -362,7 +340,7 @@ namespace PoultrySlaughterPOS.Repositories
 
         #endregion
 
-        #region Customer-Specific Operations Continued
+        #region Customer-Specific Invoice Operations
 
         public async Task<IEnumerable<Invoice>> GetCustomerInvoicesAsync(int customerId, int? limit = null, CancellationToken cancellationToken = default)
         {
@@ -370,7 +348,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices
+                IQueryable<Invoice> query = context.Invoices
                     .AsNoTracking()
                     .Include(i => i.Truck)
                     .Where(i => i.CustomerId == customerId)
@@ -386,6 +364,29 @@ namespace PoultrySlaughterPOS.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving invoices for customer {CustomerId}", customerId);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Invoice>> GetCustomerOutstandingInvoicesAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var invoicesWithPayments = await context.Invoices
+                    .AsNoTracking()
+                    .Include(i => i.Payments)
+                    .Where(i => i.CustomerId == customerId)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                // Filter outstanding invoices in memory to avoid complex SQL translation
+                return invoicesWithPayments.Where(i => i.FinalAmount > i.Payments.Sum(p => p.Amount));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving outstanding invoices for customer {CustomerId}", customerId);
                 throw;
             }
         }
@@ -421,7 +422,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -444,7 +445,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -478,7 +479,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -507,7 +508,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -540,7 +541,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (truckId.HasValue)
                     query = query.Where(i => i.TruckId == truckId.Value);
@@ -593,7 +594,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -692,7 +693,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -733,7 +734,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -767,7 +768,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking().Where(i => i.DiscountPercentage > 0);
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking().Where(i => i.DiscountPercentage > 0);
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -794,7 +795,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -833,11 +834,10 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices
+                IQueryable<Invoice> query = context.Invoices
                     .AsNoTracking()
                     .Include(i => i.Customer)
-                    .Include(i => i.Truck)
-                    .AsQueryable();
+                    .Include(i => i.Truck);
 
                 // Apply date filters
                 if (fromDate.HasValue)
@@ -872,11 +872,10 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices
+                IQueryable<Invoice> query = context.Invoices
                     .AsNoTracking()
                     .Include(i => i.Customer)
-                    .Include(i => i.Truck)
-                    .AsQueryable();
+                    .Include(i => i.Truck);
 
                 // Apply filters
                 if (customerId.HasValue)
@@ -921,7 +920,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking().Where(i => i.InvoiceNumber == invoiceNumber);
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking().Where(i => i.InvoiceNumber == invoiceNumber);
 
                 if (excludeInvoiceId.HasValue)
                     query = query.Where(i => i.InvoiceId != excludeInvoiceId.Value);
@@ -961,7 +960,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);
@@ -1156,7 +1155,7 @@ namespace PoultrySlaughterPOS.Repositories
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var query = context.Invoices.AsNoTracking();
+                IQueryable<Invoice> query = context.Invoices.AsNoTracking();
 
                 if (fromDate.HasValue)
                     query = query.Where(i => i.InvoiceDate >= fromDate.Value);

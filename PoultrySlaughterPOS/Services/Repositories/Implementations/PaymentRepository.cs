@@ -51,15 +51,21 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-                var query = context.Payments.AsNoTracking();
+                IQueryable<Payment> query = context.Payments.AsNoTracking();
 
                 if (filter != null)
                     query = query.Where(filter);
 
-                // Fixed: Proper LINQ ordering with explicit type conversion
-                IOrderedQueryable<Payment> orderedQuery = orderBy != null
-                    ? orderBy(query)
-                    : query.OrderByDescending(p => p.PaymentDate);
+                // Fixed: Explicit LINQ ordering with proper type handling
+                IOrderedQueryable<Payment> orderedQuery;
+                if (orderBy != null)
+                {
+                    orderedQuery = orderBy(query);
+                }
+                else
+                {
+                    orderedQuery = query.OrderByDescending(p => p.PaymentDate);
+                }
 
                 return await orderedQuery
                     .Skip((pageNumber - 1) * pageSize)
@@ -82,7 +88,7 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-                var query = context.Payments.AsNoTracking();
+                IQueryable<Payment> query = context.Payments.AsNoTracking();
 
                 if (predicate != null)
                     query = query.Where(predicate);
@@ -234,15 +240,14 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
 
         #endregion
 
-        #region Stub Implementations for Remaining Interface Methods
+        #region Customer Payment Operations
 
-        // Due to space constraints, implementing essential methods and stubs for others
         public async Task<IEnumerable<Payment>> GetCustomerPaymentsAsync(int customerId, int? limit = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
-                var query = context.Payments.AsNoTracking()
+                IQueryable<Payment> query = context.Payments.AsNoTracking()
                     .Include(p => p.Invoice)
                     .Where(p => p.CustomerId == customerId)
                     .OrderByDescending(p => p.PaymentDate);
@@ -259,15 +264,114 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
             }
         }
 
-        // Additional method stubs to satisfy interface
+        public async Task<decimal> GetCustomerTotalPaymentsAsync(int customerId, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                IQueryable<Payment> query = context.Payments.AsNoTracking()
+                    .Where(p => p.CustomerId == customerId);
+
+                if (fromDate.HasValue)
+                    query = query.Where(p => p.PaymentDate >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(p => p.PaymentDate <= toDate.Value.Date.AddDays(1));
+
+                return await query.SumAsync(p => p.Amount, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating total payments for customer {CustomerId}", customerId);
+                throw;
+            }
+        }
+
+        public async Task<Payment?> GetCustomerLastPaymentAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                return await context.Payments
+                    .AsNoTracking()
+                    .Include(p => p.Invoice)
+                    .Where(p => p.CustomerId == customerId)
+                    .OrderByDescending(p => p.PaymentDate)
+                    .FirstOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving last payment for customer {CustomerId}", customerId);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Financial Analytics and Reporting
+
+        public async Task<(decimal TotalAmount, int PaymentCount)> GetPaymentsSummaryAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                IQueryable<Payment> query = context.Payments.AsNoTracking();
+
+                if (fromDate.HasValue)
+                    query = query.Where(p => p.PaymentDate >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(p => p.PaymentDate <= toDate.Value.Date.AddDays(1));
+
+                var summary = await query
+                    .GroupBy(p => 1)
+                    .Select(g => new
+                    {
+                        TotalAmount = g.Sum(p => p.Amount),
+                        PaymentCount = g.Count()
+                    })
+                    .FirstOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return (summary?.TotalAmount ?? 0, summary?.PaymentCount ?? 0);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating payments summary from {FromDate} to {ToDate}", fromDate, toDate);
+                throw;
+            }
+        }
+
+        public async Task<decimal> GetTotalPaymentsAmountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                IQueryable<Payment> query = context.Payments.AsNoTracking();
+
+                if (fromDate.HasValue)
+                    query = query.Where(p => p.PaymentDate >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(p => p.PaymentDate <= toDate.Value.Date.AddDays(1));
+
+                return await query.SumAsync(p => p.Amount, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating total payments amount from {FromDate} to {ToDate}", fromDate, toDate);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Stub Implementations for Remaining Interface Methods
+
+        // Essential method implementations provided above, remaining stubs for interface compliance
         public Task<IEnumerable<Payment>> GetCustomerPaymentsByDateAsync(int customerId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default) =>
             Task.FromResult(Enumerable.Empty<Payment>());
-
-        public Task<Payment?> GetCustomerLastPaymentAsync(int customerId, CancellationToken cancellationToken = default) =>
-            Task.FromResult<Payment?>(null);
-
-        public Task<decimal> GetCustomerTotalPaymentsAsync(int customerId, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default) =>
-            Task.FromResult(0m);
 
         public Task<IEnumerable<Payment>> GetInvoicePaymentsAsync(int invoiceId, CancellationToken cancellationToken = default) =>
             Task.FromResult(Enumerable.Empty<Payment>());
@@ -292,12 +396,6 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
 
         public Task<IEnumerable<Payment>> GetTodaysPaymentsAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(Enumerable.Empty<Payment>());
-
-        public Task<decimal> GetTotalPaymentsAmountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default) =>
-            Task.FromResult(0m);
-
-        public Task<(decimal TotalAmount, int PaymentCount)> GetPaymentsSummaryAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default) =>
-            Task.FromResult((0m, 0));
 
         public Task<decimal> GetCashPaymentsAmountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default) =>
             Task.FromResult(0m);
