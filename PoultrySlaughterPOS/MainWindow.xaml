@@ -1,0 +1,51 @@
+﻿<Window x:Class="PoultrySlaughterPOS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="نظام إدارة مسلخ الدجاج" Height="600" Width="800"
+        WindowState="Maximized" FlowDirection="RightToLeft">
+    <Grid Background="#F5F5F5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2196F3" Padding="20">
+            <TextBlock Text="نظام إدارة مسلخ الدجاج - Poultry Slaughter POS" 
+                       FontSize="24" FontWeight="Bold" Foreground="White" 
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Content Area -->
+        <Grid Grid.Row="1" Margin="20">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="مرحباً بكم في نظام إدارة مسلخ الدجاج" 
+                           FontSize="20" FontWeight="Bold" 
+                           HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                <TextBlock x:Name="StatusTextBlock" 
+                           Text="جاري تحميل قاعدة البيانات..." 
+                           FontSize="16" HorizontalAlignment="Center" 
+                           Margin="0,0,0,30"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="تحميل الشاحنات" Width="150" Height="40" 
+                            Margin="10" FontSize="14"/>
+                    <Button Content="نقطة البيع" Width="150" Height="40" 
+                            Margin="10" FontSize="14"/>
+                    <Button Content="حسابات الزبائن" Width="150" Height="40" 
+                            Margin="10" FontSize="14"/>
+                    <Button Content="التقارير" Width="150" Height="40" 
+                            Margin="10" FontSize="14"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#E0E0E0" Padding="10">
+            <TextBlock Text="حقوق النشر © 2025 - نظام إدارة مسلخ الدجاج" 
+                       HorizontalAlignment="Center" FontSize="12"/>
+        </Border>
+    </Grid>
+</Window>
