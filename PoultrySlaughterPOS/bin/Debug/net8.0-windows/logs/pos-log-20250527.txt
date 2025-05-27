@@ -1,0 +1,75 @@
+2025-05-27 21:40:04.926 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-05-27 21:40:05.024 +03:00 [INF] Hosting environment: Production
+2025-05-27 21:40:05.029 +03:00 [INF] Content root path: C:\Users\$\Desktop\PoultrySlaughterPOS\PoultrySlaughterPOS\bin\Debug\net8.0-windows
+2025-05-27 21:40:06.078 +03:00 [INF] Starting database initialization for SQL Server...
+2025-05-27 21:40:07.805 +03:00 [INF] Verifying SQL Server instance with connection: Server=.\posserver;Database=chicken;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True
+2025-05-27 21:40:08.467 +03:00 [INF] Executed DbCommand (55ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-05-27 21:40:08.497 +03:00 [INF] Testing SQL Server connection...
+2025-05-27 21:40:08.520 +03:00 [INF] SQL Server connection successful.
+2025-05-27 21:40:08.599 +03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-05-27 21:40:08.741 +03:00 [INF] Executed DbCommand (126ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS
+    (SELECT *
+     FROM [sys].[objects] o
+     WHERE [o].[type] = 'U'
+     AND [o].[is_ms_shipped] = 0
+     AND NOT EXISTS (SELECT *
+         FROM [sys].[extended_properties] AS [ep]
+         WHERE [ep].[major_id] = [o].[object_id]
+             AND [ep].[minor_id] = 0
+             AND [ep].[class] = 1
+             AND [ep].[name] = N'microsoft_database_tools_support'
+    )
+)
+SELECT 1 ELSE SELECT 0
+2025-05-27 21:40:08.743 +03:00 [INF] Database 'chicken' created/verified successfully.
+2025-05-27 21:40:08.775 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-05-27 21:40:08.780 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-05-27 21:40:08.801 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-05-27 21:40:09.205 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [TRUCKS] AS [t]
+2025-05-27 21:40:09.219 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [CUSTOMERS] AS [c]
+2025-05-27 21:40:09.227 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [TRUCK_LOADS] AS [t]
+2025-05-27 21:40:09.234 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [INVOICES] AS [i]
+2025-05-27 21:40:09.243 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [PAYMENTS] AS [p]
+2025-05-27 21:40:09.251 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [DAILY_RECONCILIATION] AS [d]
+2025-05-27 21:40:09.267 +03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [AUDIT_LOGS] AS [a]
+2025-05-27 21:40:09.267 +03:00 [INF] Database schema verification completed:
+2025-05-27 21:40:09.267 +03:00 [INF] - TRUCKS: 3 records
+2025-05-27 21:40:09.267 +03:00 [INF] - CUSTOMERS: 3 records
+2025-05-27 21:40:09.268 +03:00 [INF] - TRUCK_LOADS: 0 records
+2025-05-27 21:40:09.268 +03:00 [INF] - INVOICES: 0 records
+2025-05-27 21:40:09.268 +03:00 [INF] - PAYMENTS: 0 records
+2025-05-27 21:40:09.268 +03:00 [INF] - DAILY_RECONCILIATION: 0 records
+2025-05-27 21:40:09.268 +03:00 [INF] - AUDIT_LOGS: 0 records
+2025-05-27 21:40:09.268 +03:00 [INF] Database initialization completed successfully.
+2025-05-27 21:40:10.502 +03:00 [INF] Main window loaded successfully
+2025-05-27 21:40:10.597 +03:00 [INF] Executed DbCommand (92ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [TRUCKS] AS [t]
+2025-05-27 21:40:10.609 +03:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [CUSTOMERS] AS [c]
+2025-05-27 21:40:10.610 +03:00 [INF] Database connection verified from main window - Trucks: 3, Customers: 3
+2025-05-27 21:40:21.758 +03:00 [INF] Application is shutting down...

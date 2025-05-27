@@ -1,0 +1,352 @@
+﻿<UserControl x:Class="PoultrySlaughterPOS.Views.TruckLoadingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="http://schemas.modernwpf.com/2019"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
+             xmlns:vm="clr-namespace:PoultrySlaughterPOS.ViewModels"
+             xmlns:controls="clr-namespace:PoultrySlaughterPOS.Controls"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="1200"
+             FlowDirection="RightToLeft"
+             Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}">
+
+    <UserControl.DataContext>
+        <vm:TruckLoadingViewModel />
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <!-- Modern Card Style -->
+        <Style x:Key="ModernCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="8" ShadowDepth="2" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Statistics Card Style -->
+        <Style x:Key="StatsCardStyle" TargetType="Border" BasedOn="{StaticResource ModernCardStyle}">
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}" />
+            <Setter Property="Padding" Value="15" />
+            <Setter Property="Margin" Value="5" />
+        </Style>
+
+        <!-- Input Group Style -->
+        <Style x:Key="InputGroupStyle" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,10,0,0" />
+        </Style>
+
+        <!-- Label Style -->
+        <Style x:Key="InputLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        </Style>
+
+        <!-- Validation Error Style -->
+        <Style x:Key="ValidationErrorStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <Border Grid.Row="0" Background="{DynamicResource SystemControlHighlightAccentBrush}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <fa:ImageAwesome Icon="Truck" Width="24" Height="24" 
+                                   Foreground="White" Margin="0,0,10,0" />
+                    <TextBlock Text="إدارة تحميل الشاحنات" FontSize="22" FontWeight="Bold" 
+                             Foreground="White" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <ui:Button Command="{Binding RefreshDataCommand}" 
+                             Style="{DynamicResource AccentButtonStyle}"
+                             Margin="0,0,10,0" Padding="15,8">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="Refresh" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,5,0" />
+                            <TextBlock Text="تحديث" Foreground="White" />
+                        </StackPanel>
+                    </ui:Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="400" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Input Panel -->
+                <Border Grid.Column="0" Style="{StaticResource ModernCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="بيانات التحميل الجديد" FontSize="18" FontWeight="Bold" 
+                                 Margin="0,0,0,20" />
+
+                        <!-- Truck Selection -->
+                        <StackPanel Style="{StaticResource InputGroupStyle}">
+                            <TextBlock Text="اختيار الشاحنة *" Style="{StaticResource InputLabelStyle}" />
+                            <ComboBox ItemsSource="{Binding AvailableTrucks}"
+                                    SelectedItem="{Binding SelectedTruck, Mode=TwoWay}"
+                                    DisplayMemberPath="TruckNumber"
+                                    IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                                    MinHeight="40" />
+                            <TextBlock Text="{Binding SelectedTruck.DriverName, StringFormat='السائق: {0}'}"
+                                     Visibility="{Binding SelectedTruck, Converter={StaticResource NullToVisibilityConverter}}"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                     Margin="0,5,0,0" />
+                        </StackPanel>
+
+                        <!-- Weight Input -->
+                        <StackPanel Style="{StaticResource InputGroupStyle}">
+                            <TextBlock Text="الوزن الإجمالي (كيلوغرام) *" Style="{StaticResource InputLabelStyle}" />
+                            <ui:NumberBox Value="{Binding TotalWeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Minimum="0.01" Maximum="10000" 
+                                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                                        SpinButtonPlacementMode="Inline"
+                                        SmallChange="0.1" LargeChange="10"
+                                        MinHeight="40" />
+                        </StackPanel>
+
+                        <!-- Cages Count -->
+                        <StackPanel Style="{StaticResource InputGroupStyle}">
+                            <TextBlock Text="عدد الأقفاص *" Style="{StaticResource InputLabelStyle}" />
+                            <ui:NumberBox Value="{Binding CagesCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        Minimum="1" Maximum="500"
+                                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                                        SpinButtonPlacementMode="Inline"
+                                        SmallChange="1" LargeChange="10"
+                                        MinHeight="40" />
+                        </StackPanel>
+
+                        <!-- Average Weight Display -->
+                        <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                              CornerRadius="4" Padding="10" Margin="0,10,0,0"
+                              Visibility="{Binding AverageWeightPerCage, Converter={StaticResource ZeroToVisibilityConverter}}">
+                            <StackPanel>
+                                <TextBlock Text="معلومات إضافية" FontWeight="SemiBold" Margin="0,0,0,5" />
+                                <TextBlock Text="{Binding AverageWeightPerCage, StringFormat='متوسط وزن القفص: {0:F2} كيلوغرام'}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Notes -->
+                        <StackPanel Style="{StaticResource InputGroupStyle}">
+                            <TextBlock Text="ملاحظات" Style="{StaticResource InputLabelStyle}" />
+                            <TextBox Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                   MaxLength="500" AcceptsReturn="True" TextWrapping="Wrap"
+                                   Height="80" VerticalContentAlignment="Top"
+                                   IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}" />
+                        </StackPanel>
+
+                        <!-- Validation Errors -->
+                        <ItemsControl ItemsSource="{Binding ValidationErrors}" Margin="0,15,0,0"
+                                    Visibility="{Binding ValidationErrors.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                                          CornerRadius="4" Padding="10,5" Margin="0,2">
+                                        <StackPanel Orientation="Horizontal">
+                                            <fa:ImageAwesome Icon="ExclamationTriangle" Width="14" Height="14" 
+                                                           Foreground="White" Margin="0,0,8,0" />
+                                            <TextBlock Text="{Binding}" Foreground="White" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                            <ui:Button Command="{Binding CreateLoadCommand}" 
+                                     Style="{DynamicResource AccentButtonStyle}"
+                                     IsEnabled="{Binding CanCreateLoad}"
+                                     Padding="20,10" Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <fa:ImageAwesome Icon="Plus" Width="16" Height="16" 
+                                                   Foreground="White" Margin="0,0,8,0" />
+                                    <TextBlock Text="إنشاء تحميل" Foreground="White" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </ui:Button>
+
+                            <ui:Button Command="{Binding ClearFormCommand}" 
+                                     Padding="20,10">
+                                <StackPanel Orientation="Horizontal">
+                                    <fa:ImageAwesome Icon="Eraser" Width="16" Height="16" 
+                                                   Margin="0,0,8,0" />
+                                    <TextBlock Text="مسح" />
+                                </StackPanel>
+                            </ui:Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Data Panel -->
+                <Grid Grid.Column="1" Margin="10,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Statistics Cards -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource StatsCardStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <fa:ImageAwesome Icon="Truck" Width="24" Height="24" 
+                                               Foreground="{DynamicResource SystemControlHighlightAccentBrush}"
+                                               HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding TotalLoadedTrucks}" FontSize="28" FontWeight="Bold"
+                                         HorizontalAlignment="Center" Margin="0,5,0,0" />
+                                <TextBlock Text="شاحنة محملة اليوم" FontSize="12" 
+                                         HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Style="{StaticResource StatsCardStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <fa:ImageAwesome Icon="Weight" Width="24" Height="24" 
+                                               Foreground="{DynamicResource SystemControlHighlightAccentBrush}"
+                                               HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding TotalLoadedWeight, StringFormat='{0:F1}'}" 
+                                         FontSize="28" FontWeight="Bold"
+                                         HorizontalAlignment="Center" Margin="0,5,0,0" />
+                                <TextBlock Text="كيلوغرام إجمالي" FontSize="12" 
+                                         HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource StatsCardStyle}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <fa:ImageAwesome Icon="Calculator" Width="24" Height="24" 
+                                               Foreground="{DynamicResource SystemControlHighlightAccentBrush}"
+                                               HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding AvailableTrucks.Count}" FontSize="28" FontWeight="Bold"
+                                         HorizontalAlignment="Center" Margin="0,5,0,0" />
+                                <TextBlock Text="شاحنة متاحة" FontSize="12" 
+                                         HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Today's Loads DataGrid -->
+                    <Border Grid.Row="1" Style="{StaticResource ModernCardStyle}" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="تحميلات اليوم" FontSize="18" FontWeight="Bold" 
+                                     Margin="0,0,0,15" />
+
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding TodaysLoads}"
+                                    AutoGenerateColumns="False" IsReadOnly="True"
+                                    CanUserSortColumns="True" CanUserReorderColumns="True"
+                                    GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                                    Background="Transparent" BorderThickness="0">
+
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="رقم الشاحنة" 
+                                                      Binding="{Binding Truck.TruckNumber}" 
+                                                      Width="120" />
+
+                                    <DataGridTextColumn Header="السائق" 
+                                                      Binding="{Binding Truck.DriverName}" 
+                                                      Width="150" />
+
+                                    <DataGridTextColumn Header="الوزن (كغ)" 
+                                                      Binding="{Binding TotalWeight, StringFormat='{0:F2}'}" 
+                                                      Width="100" />
+
+                                    <DataGridTextColumn Header="عدد الأقفاص" 
+                                                      Binding="{Binding CagesCount}" 
+                                                      Width="80" />
+
+                                    <DataGridTextColumn Header="الحالة" 
+                                                      Binding="{Binding Status}" 
+                                                      Width="80" />
+
+                                    <DataGridTextColumn Header="وقت التحميل" 
+                                                      Binding="{Binding CreatedDate, StringFormat='{0:HH:mm}'}" 
+                                                      Width="80" />
+
+                                    <DataGridTextColumn Header="ملاحظات" 
+                                                      Binding="{Binding Notes}" 
+                                                      Width="*" />
+
+                                    <DataGridTemplateColumn Header="إجراءات" Width="100">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ui:Button Command="{Binding DataContext.DeleteLoadCommand, 
+                                                                   RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                         CommandParameter="{Binding}"
+                                                         Background="Transparent" BorderThickness="0"
+                                                         Padding="8,4">
+                                                    <fa:ImageAwesome Icon="Trash" Width="14" Height="14" 
+                                                                   Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+                                                </ui:Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SystemControlBackgroundBaseLowBrush}" 
+              BorderThickness="0,1,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+              Padding="20,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <fa:ImageAwesome Icon="InfoCircle" Width="16" Height="16" 
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Margin="0,0,8,0" />
+                    <TextBlock Text="{Binding StatusMessage}" 
+                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                </StackPanel>
+
+                <ProgressRing Grid.Column="1" IsActive="{Binding IsLoading}" Width="20" Height="20" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

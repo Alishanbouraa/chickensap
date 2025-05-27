@@ -1,51 +1,468 @@
 ﻿<Window x:Class="PoultrySlaughterPOS.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="نظام إدارة مسلخ الدجاج" Height="600" Width="800"
-        WindowState="Maximized" FlowDirection="RightToLeft">
-    <Grid Background="#F5F5F5">
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
+        Title="نظام إدارة مسلخ الدجاج - Poultry Slaughter POS" 
+        Height="900" Width="1400"
+        WindowState="Maximized" 
+        FlowDirection="RightToLeft"
+        Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"
+        MinHeight="600" MinWidth="1000">
+
+    <Window.Resources>
+        <!-- Navigation Button Style -->
+        <Style x:Key="NavigationButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="Margin" Value="5,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" 
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" 
+                                        Value="{DynamicResource SystemControlHighlightListLowBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" 
+                                        Value="{DynamicResource SystemControlHighlightListMediumBrush}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="False">
+                                <Setter Property="Opacity" Value="0.6" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Active Navigation Button Style -->
+        <Style x:Key="ActiveNavigationButtonStyle" TargetType="Button" BasedOn="{StaticResource NavigationButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+
+        <!-- Header Style -->
+        <Style x:Key="HeaderStyle" TargetType="Border">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#1B5E20" Offset="0" />
+                        <GradientStop Color="#2E7D32" Offset="0.5" />
+                        <GradientStop Color="#1B5E20" Offset="1" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Opacity="0.2" BlurRadius="8" ShadowDepth="2" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Welcome Screen Style -->
+        <Style x:Key="WelcomeScreenStyle" TargetType="Grid">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#FAFAFA" Offset="0" />
+                        <GradientStop Color="#E8F5E8" Offset="1" />
+                    </RadialGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Status Indicator Style -->
+        <Style x:Key="StatusIndicatorStyle" TargetType="Ellipse">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+            <Setter Property="Margin" Value="5,0" />
+        </Style>
+
+        <!-- Animation Storyboards -->
+        <Storyboard x:Key="ContentFadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" 
+                           From="0" To="1" Duration="0:0:0.4" />
+            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" 
+                           From="20" To="0" Duration="0:0:0.4">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#2196F3" Padding="20">
-            <TextBlock Text="نظام إدارة مسلخ الدجاج - Poultry Slaughter POS" 
-                       FontSize="24" FontWeight="Bold" Foreground="White" 
-                       HorizontalAlignment="Center"/>
+        <!-- Application Header -->
+        <Border Grid.Row="0" Style="{StaticResource HeaderStyle}" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Application Logo and Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="White" CornerRadius="8" Padding="12" Margin="0,0,15,0">
+                        <fa:ImageAwesome Icon="Industry" Width="32" Height="32" 
+                                       Foreground="{StaticResource PrimaryBrush}" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="نظام إدارة مسلخ الدجاج" 
+                                 FontSize="22" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Poultry Slaughter Management System" 
+                                 FontSize="12" Foreground="#E8F5E8" Margin="0,2,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Navigation Menu -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" 
+                          HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                    <Button x:Name="DashboardButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="DashboardButton_Click"
+                            ToolTip="العودة إلى الصفحة الرئيسية">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="Dashboard" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="الرئيسية" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="TruckLoadingButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="TruckLoadingButton_Click"
+                            ToolTip="إدارة تحميل الشاحنات">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="Truck" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="تحميل الشاحنات" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="PointOfSaleButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="PointOfSaleButton_Click"
+                            ToolTip="نقطة البيع وإدارة الفواتير">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="CashRegister" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="نقطة البيع" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="CustomerManagementButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="CustomerManagementButton_Click"
+                            ToolTip="إدارة حسابات الزبائن">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="Users" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="إدارة الزبائن" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="TransactionHistoryButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="TransactionHistoryButton_Click"
+                            ToolTip="عرض تاريخ المعاملات">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="History" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="تاريخ المعاملات" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ReportsButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="ReportsButton_Click"
+                            ToolTip="التقارير والتحليلات">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="ChartBar" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="التقارير" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ReconciliationButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="ReconciliationButton_Click"
+                            ToolTip="التسوية اليومية">
+                        <StackPanel Orientation="Horizontal">
+                            <fa:ImageAwesome Icon="Calculator" Width="16" Height="16" 
+                                           Foreground="White" Margin="0,0,8,0" />
+                            <TextBlock Text="التسوية" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- System Status and User Info -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" 
+                          VerticalAlignment="Center" Margin="20,0">
+                    <Border Background="#ffffff20" CornerRadius="6" Padding="12,6">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="DatabaseStatusIndicator" 
+                                   Style="{StaticResource StatusIndicatorStyle}"
+                                   Fill="{StaticResource ErrorBrush}" />
+                            <TextBlock x:Name="DatabaseStatusText" 
+                                     Text="قاعدة البيانات" 
+                                     Foreground="White" FontSize="12" 
+                                     VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="RefreshButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="RefreshButton_Click"
+                            ToolTip="تحديث البيانات">
+                        <fa:ImageAwesome Icon="Refresh" Width="18" Height="18" Foreground="White" />
+                    </Button>
+
+                    <Button x:Name="SettingsButton" 
+                            Style="{StaticResource NavigationButtonStyle}"
+                            Click="SettingsButton_Click"
+                            ToolTip="إعدادات النظام">
+                        <fa:ImageAwesome Icon="Cog" Width="18" Height="18" Foreground="White" />
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- Content Area -->
-        <Grid Grid.Row="1" Margin="20">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="مرحباً بكم في نظام إدارة مسلخ الدجاج" 
-                           FontSize="20" FontWeight="Bold" 
-                           HorizontalAlignment="Center" Margin="0,0,0,20"/>
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" x:Name="MainContentGrid">
+            <!-- Dynamic Content Container -->
+            <ContentPresenter x:Name="MainContentPresenter" 
+                            Content="{Binding CurrentView}" 
+                            Margin="0"
+                            RenderTransformOrigin="0.5,0.5">
+                <ContentPresenter.RenderTransform>
+                    <TranslateTransform />
+                </ContentPresenter.RenderTransform>
+            </ContentPresenter>
 
-                <TextBlock x:Name="StatusTextBlock" 
-                           Text="جاري تحميل قاعدة البيانات..." 
-                           FontSize="16" HorizontalAlignment="Center" 
-                           Margin="0,0,0,30"/>
+            <!-- Welcome Screen (Default View) -->
+            <Grid x:Name="WelcomeScreen" 
+                  Style="{StaticResource WelcomeScreenStyle}"
+                  Visibility="Visible">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="40">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" 
+                              MaxWidth="800">
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Content="تحميل الشاحنات" Width="150" Height="40" 
-                            Margin="10" FontSize="14"/>
-                    <Button Content="نقطة البيع" Width="150" Height="40" 
-                            Margin="10" FontSize="14"/>
-                    <Button Content="حسابات الزبائن" Width="150" Height="40" 
-                            Margin="10" FontSize="14"/>
-                    <Button Content="التقارير" Width="150" Height="40" 
-                            Margin="10" FontSize="14"/>
+                        <!-- Welcome Header -->
+                        <Border Background="White" CornerRadius="12" Padding="40" 
+                              Margin="0,0,0,30" Effect="{StaticResource {x:Static SystemParameters.DropShadowEffectKey}}">
+                            <StackPanel HorizontalAlignment="Center">
+                                <fa:ImageAwesome Icon="Home" Width="80" Height="80" 
+                                               Foreground="{StaticResource PrimaryBrush}" 
+                                               HorizontalAlignment="Center" Margin="0,0,0,20" />
+
+                                <TextBlock Text="أهلاً وسهلاً بكم" 
+                                         Style="{StaticResource HeaderTextStyle}"
+                                         HorizontalAlignment="Center" 
+                                         Margin="0,0,0,10" />
+
+                                <TextBlock Text="نظام إدارة مسلخ الدجاج المتكامل" 
+                                         Style="{StaticResource SubHeaderTextStyle}"
+                                         HorizontalAlignment="Center" 
+                                         Foreground="{StaticResource PrimaryBrush}"
+                                         Margin="0,0,0,20" />
+
+                                <TextBlock x:Name="StatusTextBlock" 
+                                         Text="اختر أحد الخيارات من القائمة العلوية للبدء" 
+                                         Style="{StaticResource BodyTextStyle}"
+                                         HorizontalAlignment="Center" 
+                                         TextAlignment="Center"
+                                         TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Quick Access Cards -->
+                        <Grid Margin="0,20,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Truck Loading Card -->
+                            <Border Grid.Column="0" Style="{StaticResource CardStyle}" 
+                                  Background="White" Cursor="Hand"
+                                  MouseLeftButtonUp="TruckLoadingCard_Click">
+                                <StackPanel HorizontalAlignment="Center" Padding="20">
+                                    <fa:ImageAwesome Icon="Truck" Width="48" Height="48" 
+                                                   Foreground="{StaticResource PrimaryBrush}"
+                                                   HorizontalAlignment="Center" Margin="0,0,0,15" />
+                                    <TextBlock Text="تحميل الشاحنات" 
+                                             Style="{StaticResource SubHeaderTextStyle}"
+                                             HorizontalAlignment="Center" 
+                                             Margin="0,0,0,10" />
+                                    <TextBlock Text="إدارة تحميل الشاحنات وتسجيل الأوزان" 
+                                             Style="{StaticResource CaptionTextStyle}"
+                                             HorizontalAlignment="Center" 
+                                             TextAlignment="Center"
+                                             TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Point of Sale Card -->
+                            <Border Grid.Column="1" Style="{StaticResource CardStyle}" 
+                                  Background="White" Cursor="Hand"
+                                  MouseLeftButtonUp="PointOfSaleCard_Click">
+                                <StackPanel HorizontalAlignment="Center" Padding="20">
+                                    <fa:ImageAwesome Icon="CashRegister" Width="48" Height="48" 
+                                                   Foreground="{StaticResource AccentBrush}"
+                                                   HorizontalAlignment="Center" Margin="0,0,0,15" />
+                                    <TextBlock Text="نقطة البيع" 
+                                             Style="{StaticResource SubHeaderTextStyle}"
+                                             HorizontalAlignment="Center" 
+                                             Margin="0,0,0,10" />
+                                    <TextBlock Text="معالجة المبيعات وإصدار الفواتير" 
+                                             Style="{StaticResource CaptionTextStyle}"
+                                             HorizontalAlignment="Center" 
+                                             TextAlignment="Center"
+                                             TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Customer Management Card -->
+                            <Border Grid.Column="2" Style="{StaticResource CardStyle}" 
+                                  Background="White" Cursor="Hand"
+                                  MouseLeftButtonUp="CustomerManagementCard_Click">
+                                <StackPanel HorizontalAlignment="Center" Padding="20">
+                                    <fa:ImageAwesome Icon="Users" Width="48" Height="48" 
+                                                   Foreground="{StaticResource InfoBrush}"
+                                                   HorizontalAlignment="Center" Margin="0,0,0,15" />
+                                    <TextBlock Text="إدارة الزبائن" 
+                                             Style="{StaticResource SubHeaderTextStyle}"
+                                             HorizontalAlignment="Center" 
+                                             Margin="0,0,0,10" />
+                                    <TextBlock Text="إدارة حسابات الزبائن والمدفوعات" 
+                                             Style="{StaticResource CaptionTextStyle}"
+                                             HorizontalAlignment="Center" 
+                                             TextAlignment="Center"
+                                             TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- System Information -->
+                        <Border Style="{StaticResource CardStyle}" 
+                              Background="#F8F9FA" Margin="0,30,0,0">
+                            <StackPanel>
+                                <TextBlock Text="معلومات النظام" 
+                                         Style="{StaticResource SubHeaderTextStyle}"
+                                         Margin="0,0,0,15" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="إصدار النظام: 1.0.0" 
+                                                 Style="{StaticResource BodyTextStyle}" Margin="0,0,0,5" />
+                                        <TextBlock Text="قاعدة البيانات: SQL Server LocalDB" 
+                                                 Style="{StaticResource BodyTextStyle}" Margin="0,0,0,5" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock x:Name="SystemDateText" 
+                                                 Text="التاريخ: 2025/01/27" 
+                                                 Style="{StaticResource BodyTextStyle}" Margin="0,0,0,5" />
+                                        <TextBlock x:Name="SystemTimeText" 
+                                                 Text="الوقت: 10:30 ص" 
+                                                 Style="{StaticResource BodyTextStyle}" Margin="0,0,0,5" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- Loading Overlay -->
+            <Border x:Name="LoadingOverlay" 
+                    Style="{StaticResource LoadingOverlayStyle}"
+                    Visibility="Collapsed">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ui:ProgressRing IsActive="True" Width="50" Height="50" />
+                    <TextBlock Text="جاري التحميل..." 
+                             Style="{StaticResource BodyTextStyle}"
+                             HorizontalAlignment="Center" 
+                             Margin="0,15,0,0" />
                 </StackPanel>
-            </StackPanel>
+            </Border>
         </Grid>
 
-        <!-- Footer -->
-        <Border Grid.Row="2" Background="#E0E0E0" Padding="10">
-            <TextBlock Text="حقوق النشر © 2025 - نظام إدارة مسلخ الدجاج" 
-                       HorizontalAlignment="Center" FontSize="12"/>
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Style="{StaticResource StatusBarStyle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Status Information -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <fa:ImageAwesome Icon="InfoCircle" Width="14" Height="14" 
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Margin="0,0,8,0" />
+                    <TextBlock x:Name="StatusLabel" 
+                             Text="جاهز" 
+                             Style="{StaticResource CaptionTextStyle}" />
+                </StackPanel>
+
+                <!-- Current View Information -->
+                <TextBlock Grid.Column="1" 
+                         x:Name="CurrentViewLabel"
+                         Text="الصفحة الرئيسية" 
+                         Style="{StaticResource CaptionTextStyle}"
+                         HorizontalAlignment="Center" />
+
+                <!-- System Performance -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" 
+                          VerticalAlignment="Center" Margin="20,0">
+                    <fa:ImageAwesome Icon="Database" Width="12" Height="12" 
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Margin="0,0,5,0" />
+                    <TextBlock x:Name="DatabaseInfoLabel" 
+                             Text="متصل" 
+                             Style="{StaticResource CaptionTextStyle}" />
+                </StackPanel>
+
+                <!-- Copyright and Version -->
+                <TextBlock Grid.Column="3" 
+                         Text="حقوق النشر © 2025 - نظام إدارة مسلخ الدجاج" 
+                         Style="{StaticResource CaptionTextStyle}" />
+            </Grid>
         </Border>
     </Grid>
 </Window>
