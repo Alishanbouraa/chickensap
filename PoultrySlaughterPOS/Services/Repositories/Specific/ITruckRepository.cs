@@ -1,37 +1,35 @@
 ﻿using PoultrySlaughterPOS.Models;
 
-namespace PoultrySlaughterPOS.Services.Repositories
+namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
-    /// Advanced repository interface for truck-specific database operations
-    /// with specialized queries for POS workflow management
+    /// Truck repository interface providing domain-specific operations for truck management.
+    /// Extends base repository with specialized queries for truck loading and performance tracking.
     /// </summary>
-    public interface ITruckRepository : IRepository<Truck>
+    public interface ITruckRepository : IBaseRepository<Truck, int>
     {
-        // Truck Status Management
+        // Domain-specific queries for truck operations
         Task<IEnumerable<Truck>> GetActiveTrucksAsync(CancellationToken cancellationToken = default);
         Task<IEnumerable<Truck>> GetTrucksWithLoadsAsync(DateTime? loadDate = null, CancellationToken cancellationToken = default);
+        Task<Truck?> GetTruckByNumberAsync(string truckNumber, CancellationToken cancellationToken = default);
         Task<Truck?> GetTruckWithCurrentLoadAsync(int truckId, CancellationToken cancellationToken = default);
 
-        // Performance Analytics
-        Task<IEnumerable<Truck>> GetTrucksByPerformanceAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
-        Task<Dictionary<int, decimal>> GetTruckLoadCapacityUtilizationAsync(DateTime date, CancellationToken cancellationToken = default);
+        // Load management specific operations
+        Task<IEnumerable<Truck>> GetTrucksForLoadingAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<Truck>> GetTrucksInTransitAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<Truck>> GetCompletedTrucksAsync(DateTime date, CancellationToken cancellationToken = default);
 
-        // Load Management Integration
-        Task<bool> HasActiveLoadAsync(int truckId, CancellationToken cancellationToken = default);
-        Task<decimal> GetTotalLoadWeightAsync(int truckId, DateTime date, CancellationToken cancellationToken = default);
-        Task<int> GetDailyTripCountAsync(int truckId, DateTime date, CancellationToken cancellationToken = default);
+        // Performance and analytics queries
+        Task<Dictionary<int, decimal>> GetTruckLoadCapacityAsync(IEnumerable<int> truckIds, CancellationToken cancellationToken = default);
+        Task<IEnumerable<(Truck Truck, int LoadCount, decimal TotalWeight)>> GetTruckPerformanceAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
+        Task<bool> IsTruckAvailableForLoadingAsync(int truckId, CancellationToken cancellationToken = default);
 
-        // Driver Management
-        Task<IEnumerable<Truck>> GetTrucksByDriverAsync(string driverName, CancellationToken cancellationToken = default);
-        Task<bool> IsDriverAssignedAsync(string driverName, CancellationToken cancellationToken = default);
+        // Validation and business rule queries
+        Task<bool> TruckNumberExistsAsync(string truckNumber, int? excludeTruckId = null, CancellationToken cancellationToken = default);
+        Task<int> GetActiveTruckCountAsync(CancellationToken cancellationToken = default);
 
-        // Advanced Queries for Reconciliation
+        // Reconciliation support queries
         Task<IEnumerable<Truck>> GetTrucksRequiringReconciliationAsync(DateTime date, CancellationToken cancellationToken = default);
-        Task<Dictionary<int, (decimal LoadWeight, decimal SoldWeight)>> GetDailyWeightComparisonAsync(DateTime date, CancellationToken cancellationToken = default);
-
-        // Maintenance and Status Tracking
-        Task<bool> UpdateTruckStatusBatchAsync(IEnumerable<int> truckIds, bool isActive, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Truck>> GetTrucksWithMinimalLoadHistoryAsync(int dayThreshold, CancellationToken cancellationToken = default);
+        Task<(decimal LoadedWeight, decimal SoldWeight)> GetTruckWeightSummaryAsync(int truckId, DateTime date, CancellationToken cancellationToken = default);
     }
 }

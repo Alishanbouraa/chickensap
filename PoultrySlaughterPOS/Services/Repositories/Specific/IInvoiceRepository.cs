@@ -1,61 +1,69 @@
 ﻿using PoultrySlaughterPOS.Models;
 
-namespace PoultrySlaughterPOS.Services.Repositories
+namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
-    /// Enterprise-grade repository interface for invoice management
-    /// supporting complex POS operations, financial calculations, and audit compliance
+    /// Invoice repository interface providing comprehensive sales transaction management.
+    /// Implements high-performance invoice processing, financial calculations, and business intelligence
+    /// optimized for concurrent multi-terminal POS operations with transactional integrity.
     /// </summary>
-    public interface IInvoiceRepository : IRepository<Invoice>
+    public interface IInvoiceRepository : IBaseRepository<Invoice, int>
     {
-        // Invoice Generation and Numbering
-        Task<string> GenerateInvoiceNumberAsync(CancellationToken cancellationToken = default);
-        Task<bool> IsInvoiceNumberUniqueAsync(string invoiceNumber, CancellationToken cancellationToken = default);
+        // Core invoice operations for POS transactions
         Task<Invoice?> GetInvoiceByNumberAsync(string invoiceNumber, CancellationToken cancellationToken = default);
-
-        // Comprehensive Invoice Retrieval with Relationships
         Task<Invoice?> GetInvoiceWithDetailsAsync(int invoiceId, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Invoice>> GetInvoicesWithCustomerAndTruckAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Invoice>> GetCustomerInvoicesWithPaymentsAsync(int customerId, CancellationToken cancellationToken = default);
+        Task<string> GenerateInvoiceNumberAsync(CancellationToken cancellationToken = default);
+        Task<Invoice> CreateInvoiceWithTransactionAsync(Invoice invoice, CancellationToken cancellationToken = default);
 
-        // Advanced Financial Operations
-        Task<decimal> CalculateNetWeightAsync(decimal grossWeight, decimal cagesWeight);
-        Task<decimal> CalculateTotalAmountAsync(decimal netWeight, decimal unitPrice);
-        Task<decimal> ApplyDiscountCalculationAsync(decimal totalAmount, decimal discountPercentage);
-        Task<decimal> CalculateFinalAmountAsync(decimal totalAmount, decimal discountPercentage);
+        // Daily operations and sales management
+        Task<IEnumerable<Invoice>> GetInvoicesByDateAsync(DateTime date, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Invoice>> GetInvoicesByDateRangeAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Invoice>> GetTodaysInvoicesAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<Invoice>> GetInvoicesByTruckAsync(int truckId, DateTime? date = null, CancellationToken cancellationToken = default);
 
-        // Transaction Processing with Atomicity
-        Task<Invoice> CreateInvoiceWithBalanceUpdateAsync(Invoice invoice, CancellationToken cancellationToken = default);
-        Task<bool> UpdateInvoiceWithCustomerBalanceAsync(int invoiceId, decimal newAmount, CancellationToken cancellationToken = default);
-        Task<bool> VoidInvoiceWithBalanceReversalAsync(int invoiceId, string voidReason, CancellationToken cancellationToken = default);
+        // Customer-specific invoice operations
+        Task<IEnumerable<Invoice>> GetCustomerInvoicesAsync(int customerId, int? limit = null, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Invoice>> GetCustomerOutstandingInvoicesAsync(int customerId, CancellationToken cancellationToken = default);
+        Task<Invoice?> GetCustomerLastInvoiceAsync(int customerId, CancellationToken cancellationToken = default);
 
-        // Daily Operations and Reconciliation Support
-        Task<IEnumerable<Invoice>> GetDailyInvoicesAsync(DateTime date, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Invoice>> GetInvoicesByTruckAndDateAsync(int truckId, DateTime date, CancellationToken cancellationToken = default);
-        Task<decimal> GetDailySalesTotalByTruckAsync(int truckId, DateTime date, CancellationToken cancellationToken = default);
-        Task<decimal> GetDailyNetWeightByTruckAsync(int truckId, DateTime date, CancellationToken cancellationToken = default);
+        // Financial analytics and reporting
+        Task<decimal> GetTotalSalesAmountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+        Task<(decimal TotalAmount, decimal TotalWeight, int InvoiceCount)> GetSalesSummaryAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+        Task<Dictionary<int, decimal>> GetSalesByTruckAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+        Task<Dictionary<int, decimal>> GetSalesByCustomerAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
 
-        // Performance Analytics and Reporting
-        Task<Dictionary<int, decimal>> GetTruckSalesPerformanceAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
-        Task<Dictionary<int, decimal>> GetCustomerPurchaseVolumeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
-        Task<(decimal TotalSales, decimal TotalWeight, int InvoiceCount)> GetSalesSummaryAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
+        // Weight and quantity analytics for reconciliation
+        Task<decimal> GetTotalWeightSoldAsync(int? truckId = null, DateTime? date = null, CancellationToken cancellationToken = default);
+        Task<Dictionary<int, decimal>> GetWeightSoldByTruckAsync(DateTime date, CancellationToken cancellationToken = default);
+        Task<(decimal TotalGrossWeight, decimal TotalNetWeight, int TotalCages)> GetWeightSummaryAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
 
-        // Advanced Search and Filtering
-        Task<IEnumerable<Invoice>> SearchInvoicesAsync(string searchTerm, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Invoice>> GetInvoicesByAmountRangeAsync(decimal minAmount, decimal maxAmount, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Invoice>> GetLargeInvoicesAsync(decimal thresholdAmount, CancellationToken cancellationToken = default);
+        // Performance and trend analysis
+        Task<IEnumerable<(DateTime Date, decimal Amount, int Count)>> GetDailySalesAnalysisAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
+        Task<IEnumerable<(int Hour, decimal Amount, int Count)>> GetHourlySalesAnalysisAsync(DateTime date, CancellationToken cancellationToken = default);
+        Task<Dictionary<string, decimal>> GetSalesByPaymentMethodAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
 
-        // Data Integrity and Validation
-        Task<bool> ValidateInvoiceIntegrityAsync(int invoiceId, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Invoice>> GetInvoicesWithDiscrepanciesAsync(CancellationToken cancellationToken = default);
-        Task<bool> RecalculateInvoiceTotalsAsync(int invoiceId, CancellationToken cancellationToken = default);
+        // Price and margin analysis
+        Task<(decimal MinPrice, decimal MaxPrice, decimal AvgPrice)> GetPriceAnalysisAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+        Task<decimal> GetAverageDiscountPercentageAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+        Task<IEnumerable<(decimal UnitPrice, int InvoiceCount, decimal TotalAmount)>> GetPriceDistributionAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
 
-        // Audit and Compliance Support
-        Task<IEnumerable<Invoice>> GetModifiedInvoicesAsync(DateTime since, CancellationToken cancellationToken = default);
-        Task<Dictionary<string, object>> GetInvoiceAuditTrailAsync(int invoiceId, CancellationToken cancellationToken = default);
+        // Search and filtering operations
+        Task<IEnumerable<Invoice>> SearchInvoicesAsync(string searchTerm, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+        Task<(IEnumerable<Invoice> Invoices, int TotalCount)> GetInvoicesPagedAsync(int pageNumber, int pageSize, int? customerId = null, int? truckId = null, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
 
-        // Batch Operations for Performance Optimization
-        Task<IEnumerable<Invoice>> CreateInvoiceBatchAsync(IEnumerable<Invoice> invoices, CancellationToken cancellationToken = default);
-        Task<int> UpdateInvoiceStatusBatchAsync(IEnumerable<int> invoiceIds, string status, CancellationToken cancellationToken = default);
+        // Business validation and integrity
+        Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null, CancellationToken cancellationToken = default);
+        Task<bool> CanDeleteInvoiceAsync(int invoiceId, CancellationToken cancellationToken = default);
+        Task<int> GetInvoiceCountAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
+
+        // Reconciliation and audit support
+        Task<IEnumerable<Invoice>> GetUnreconciledInvoicesAsync(DateTime date, CancellationToken cancellationToken = default);
+        Task<Dictionary<int, (decimal LoadedWeight, decimal SoldWeight, decimal Variance)>> GetTruckReconciliationDataAsync(DateTime date, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Invoice>> GetInvoicesRequiringAuditAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
+
+        // Advanced querying for business intelligence
+        Task<IEnumerable<(int TruckId, DateTime Date, decimal Efficiency)>> GetTruckEfficiencyAnalysisAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
+        Task<Dictionary<int, List<(DateTime Date, decimal Amount)>>> GetCustomerPurchasePatternAsync(IEnumerable<int> customerIds, int monthsBack = 6, CancellationToken cancellationToken = default);
+        Task<(decimal TotalRevenue, decimal AverageInvoiceValue, decimal LargestInvoice)> GetRevenueKPIsAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
     }
 }

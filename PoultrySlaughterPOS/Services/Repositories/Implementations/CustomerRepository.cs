@@ -2,65 +2,36 @@
 using Microsoft.Extensions.Logging;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Models;
+using System.Linq.Expressions;
 
-namespace PoultrySlaughterPOS.Services.Repositories
+namespace PoultrySlaughterPOS.Repositories
 {
     /// <summary>
-    /// Professional customer repository implementation with advanced financial operations,
-    /// debt management, and comprehensive customer lifecycle support
+    /// Customer repository implementation providing comprehensive customer account management.
+    /// Implements sophisticated financial tracking, debt management, and business intelligence operations
+    /// optimized for high-performance POS environments with concurrent access patterns.
     /// </summary>
-    public class CustomerRepository : Repository<Customer>, ICustomerRepository
+    public class CustomerRepository : BaseRepository<Customer, int>, ICustomerRepository
     {
-        public CustomerRepository(PoultryDbContext context, ILogger<CustomerRepository> logger)
-            : base(context, logger)
+        public CustomerRepository(IDbContextFactory<PoultryDbContext> contextFactory, ILogger<CustomerRepository> logger)
+            : base(contextFactory, logger)
         {
         }
 
-        public async Task<IEnumerable<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(searchTerm))
-                    return await GetActiveCustomersAsync(cancellationToken).ConfigureAwait(false);
+        protected override DbSet<Customer> GetDbSet(PoultryDbContext context) => context.Customers;
 
-                var term = searchTerm.Trim().ToLower();
+        protected override Expression<Func<Customer, bool>> GetByIdPredicate(int id) => customer => customer.CustomerId == id;
 
-                return await _dbSet
-                    .Where(c => c.IsActive &&
-                               (c.CustomerName.ToLower().Contains(term) ||
-                                (c.PhoneNumber != null && c.PhoneNumber.Contains(term)) ||
-                                (c.Address != null && c.Address.ToLower().Contains(term))))
-                    .OrderBy(c => c.CustomerName)
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error searching customers with term: {SearchTerm}", searchTerm);
-                throw;
-            }
-        }
-
-        public async Task<Customer?> GetCustomerByPhoneAsync(string phoneNumber, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                return await _dbSet
-                    .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber && c.IsActive, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving customer by phone: {PhoneNumber}", phoneNumber);
-                throw;
-            }
-        }
+        #region Core Customer Management
 
         public async Task<IEnumerable<Customer>> GetActiveCustomersAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _dbSet
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
                     .Where(c => c.IsActive)
                     .OrderBy(c => c.CustomerName)
                     .ToListAsync(cancellationToken)
@@ -73,11 +44,74 @@ namespace PoultrySlaughterPOS.Services.Repositories
             }
         }
 
+        public async Task<Customer?> GetCustomerByNameAsync(string customerName, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.CustomerName.ToLower() == customerName.ToLower(), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer by name {CustomerName}", customerName);
+                throw;
+            }
+        }
+
+        public async Task<Customer?> GetCustomerByPhoneAsync(string phoneNumber, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer by phone {PhoneNumber}", phoneNumber);
+                throw;
+            }
+        }
+
+        public async Task<Customer?> GetCustomerWithTransactionsAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
+                    .Include(c => c.Invoices.OrderByDescending(i => i.InvoiceDate).Take(50))
+                    .Include(c => c.Payments.OrderByDescending(p => p.PaymentDate).Take(50))
+                    .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer {CustomerId} with transactions", customerId);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Account Balance and Debt Management
+
         public async Task<IEnumerable<Customer>> GetCustomersWithDebtAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _dbSet
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
                     .Where(c => c.IsActive && c.TotalDebt > 0)
                     .OrderByDescending(c => c.TotalDebt)
                     .ToListAsync(cancellationToken)
@@ -90,11 +124,34 @@ namespace PoultrySlaughterPOS.Services.Repositories
             }
         }
 
-        public async Task<decimal> GetCustomerBalanceAsync(int customerId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Customer>> GetCustomersWithDebtAboveThresholdAsync(decimal threshold, CancellationToken cancellationToken = default)
         {
             try
             {
-                var customer = await _dbSet
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
+                    .Where(c => c.IsActive && c.TotalDebt >= threshold)
+                    .OrderByDescending(c => c.TotalDebt)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customers with debt above threshold {Threshold}", threshold);
+                throw;
+            }
+        }
+
+        public async Task<decimal> GetCustomerTotalDebtAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var customer = await context.Customers
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -102,16 +159,18 @@ namespace PoultrySlaughterPOS.Services.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving balance for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error retrieving total debt for customer {CustomerId}", customerId);
                 throw;
             }
         }
 
-        public async Task<bool> UpdateCustomerBalanceAsync(int customerId, decimal amount, string operation, CancellationToken cancellationToken = default)
+        public async Task<bool> UpdateCustomerBalanceAsync(int customerId, decimal amount, CancellationToken cancellationToken = default)
         {
             try
             {
-                var customer = await _dbSet
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var customer = await context.Customers
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -121,79 +180,65 @@ namespace PoultrySlaughterPOS.Services.Repositories
                     return false;
                 }
 
-                var oldBalance = customer.TotalDebt;
-
-                customer.TotalDebt = operation.ToUpper() switch
-                {
-                    "ADD" => customer.TotalDebt + amount,
-                    "SUBTRACT" => customer.TotalDebt - amount,
-                    "SET" => amount,
-                    _ => throw new ArgumentException($"Invalid operation: {operation}")
-                };
-
+                customer.TotalDebt += amount;
                 customer.UpdatedDate = DateTime.Now;
 
-                _logger.LogDebug("Updated customer {CustomerId} balance from {OldBalance} to {NewBalance} (Operation: {Operation})",
-                    customerId, oldBalance, customer.TotalDebt, operation);
+                var rowsAffected = await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
-                return true;
+                _logger.LogInformation("Updated balance for customer {CustomerId} by {Amount}. New balance: {NewBalance}",
+                    customerId, amount, customer.TotalDebt);
+
+                return rowsAffected > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating balance for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error updating balance for customer {CustomerId} by amount {Amount}", customerId, amount);
                 throw;
             }
         }
 
-        public async Task<bool> UpdateCustomerBalanceWithConcurrencyAsync(int customerId, decimal newBalance, decimal expectedCurrentBalance, CancellationToken cancellationToken = default)
+        public async Task<(decimal TotalDebt, int CustomerCount)> GetDebtSummaryAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var customer = await _dbSet
-                    .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var debtSummary = await context.Customers
+                    .AsNoTracking()
+                    .Where(c => c.IsActive && c.TotalDebt > 0)
+                    .GroupBy(c => 1)
+                    .Select(g => new { TotalDebt = g.Sum(c => c.TotalDebt), CustomerCount = g.Count() })
+                    .FirstOrDefaultAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                if (customer == null)
-                {
-                    _logger.LogWarning("Customer {CustomerId} not found for concurrency balance update", customerId);
-                    return false;
-                }
-
-                if (Math.Abs(customer.TotalDebt - expectedCurrentBalance) > 0.01m)
-                {
-                    _logger.LogWarning("Concurrency conflict for customer {CustomerId}: Expected {Expected}, Actual {Actual}",
-                        customerId, expectedCurrentBalance, customer.TotalDebt);
-                    return false;
-                }
-
-                customer.TotalDebt = newBalance;
-                customer.UpdatedDate = DateTime.Now;
-
-                _logger.LogDebug("Successfully updated customer {CustomerId} balance to {NewBalance} with concurrency check",
-                    customerId, newBalance);
-
-                return true;
+                return (debtSummary?.TotalDebt ?? 0, debtSummary?.CustomerCount ?? 0);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating balance with concurrency for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error retrieving debt summary");
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Invoice>> GetCustomerInvoicesAsync(int customerId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+        #endregion
+
+        #region Transaction History and Analytics
+
+        public async Task<IEnumerable<Invoice>> GetCustomerInvoicesAsync(int customerId, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
         {
             try
             {
-                var query = _context.Invoices
-                    .Include(i => i.Truck)
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Invoices
+                    .AsNoTracking()
                     .Where(i => i.CustomerId == customerId);
 
-                if (startDate.HasValue)
-                    query = query.Where(i => i.InvoiceDate >= startDate.Value);
+                if (fromDate.HasValue)
+                    query = query.Where(i => i.InvoiceDate >= fromDate.Value);
 
-                if (endDate.HasValue)
-                    query = query.Where(i => i.InvoiceDate <= endDate.Value);
+                if (toDate.HasValue)
+                    query = query.Where(i => i.InvoiceDate <= toDate.Value.Date.AddDays(1));
 
                 return await query
                     .OrderByDescending(i => i.InvoiceDate)
@@ -202,24 +247,27 @@ namespace PoultrySlaughterPOS.Services.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving invoices for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error retrieving invoices for customer {CustomerId} from {FromDate} to {ToDate}",
+                    customerId, fromDate, toDate);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Payment>> GetCustomerPaymentsAsync(int customerId, DateTime? startDate = null, DateTime? endDate = null, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Payment>> GetCustomerPaymentsAsync(int customerId, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
         {
             try
             {
-                var query = _context.Payments
-                    .Include(p => p.Invoice)
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Payments
+                    .AsNoTracking()
                     .Where(p => p.CustomerId == customerId);
 
-                if (startDate.HasValue)
-                    query = query.Where(p => p.PaymentDate >= startDate.Value);
+                if (fromDate.HasValue)
+                    query = query.Where(p => p.PaymentDate >= fromDate.Value);
 
-                if (endDate.HasValue)
-                    query = query.Where(p => p.PaymentDate <= endDate.Value);
+                if (toDate.HasValue)
+                    query = query.Where(p => p.PaymentDate <= toDate.Value.Date.AddDays(1));
 
                 return await query
                     .OrderByDescending(p => p.PaymentDate)
@@ -228,215 +276,529 @@ namespace PoultrySlaughterPOS.Services.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving payments for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error retrieving payments for customer {CustomerId} from {FromDate} to {ToDate}",
+                    customerId, fromDate, toDate);
                 throw;
             }
         }
 
-        public async Task<(decimal TotalSales, decimal TotalPayments, decimal CurrentBalance)> GetCustomerFinancialSummaryAsync(int customerId, CancellationToken cancellationToken = default)
+        public async Task<(decimal TotalSales, decimal TotalPayments, decimal NetBalance)> GetCustomerAccountSummaryAsync(int customerId, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
         {
             try
             {
-                var totalSales = await _context.Invoices
-                    .Where(i => i.CustomerId == customerId)
-                    .SumAsync(i => i.FinalAmount, cancellationToken)
-                    .ConfigureAwait(false);
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var totalPayments = await _context.Payments
-                    .Where(p => p.CustomerId == customerId)
-                    .SumAsync(p => p.Amount, cancellationToken)
-                    .ConfigureAwait(false);
+                // Build base queries
+                var invoiceQuery = context.Invoices.AsNoTracking().Where(i => i.CustomerId == customerId);
+                var paymentQuery = context.Payments.AsNoTracking().Where(p => p.CustomerId == customerId);
 
-                var currentBalance = await GetCustomerBalanceAsync(customerId, cancellationToken)
-                    .ConfigureAwait(false);
+                // Apply date filters
+                if (fromDate.HasValue)
+                {
+                    invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate >= fromDate.Value);
+                    paymentQuery = paymentQuery.Where(p => p.PaymentDate >= fromDate.Value);
+                }
 
-                return (totalSales, totalPayments, currentBalance);
+                if (toDate.HasValue)
+                {
+                    var endDate = toDate.Value.Date.AddDays(1);
+                    invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate <= endDate);
+                    paymentQuery = paymentQuery.Where(p => p.PaymentDate <= endDate);
+                }
+
+                // Execute queries concurrently
+                var totalSalesTask = invoiceQuery.SumAsync(i => i.FinalAmount, cancellationToken);
+                var totalPaymentsTask = paymentQuery.SumAsync(p => p.Amount, cancellationToken);
+
+                await Task.WhenAll(totalSalesTask, totalPaymentsTask).ConfigureAwait(false);
+
+                var totalSales = await totalSalesTask.ConfigureAwait(false);
+                var totalPayments = await totalPaymentsTask.ConfigureAwait(false);
+                var netBalance = totalSales - totalPayments;
+
+                return (totalSales, totalPayments, netBalance);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving financial summary for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error retrieving account summary for customer {CustomerId} from {FromDate} to {ToDate}",
+                    customerId, fromDate, toDate);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Customer>> GetTopCustomersByVolumeAsync(int topCount, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
+        #endregion
+
+        #region Customer Search and Filtering
+
+        public async Task<IEnumerable<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _dbSet
-                    .Include(c => c.Invoices.Where(i => i.InvoiceDate >= startDate && i.InvoiceDate <= endDate))
-                    .Where(c => c.IsActive && c.Invoices.Any(i => i.InvoiceDate >= startDate && i.InvoiceDate <= endDate))
-                    .OrderByDescending(c => c.Invoices.Sum(i => i.FinalAmount))
-                    .Take(topCount)
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var lowerSearchTerm = searchTerm.ToLower();
+
+                return await context.Customers
+                    .AsNoTracking()
+                    .Where(c => c.IsActive &&
+                               (c.CustomerName.ToLower().Contains(lowerSearchTerm) ||
+                                (c.PhoneNumber != null && c.PhoneNumber.Contains(searchTerm)) ||
+                                (c.Address != null && c.Address.ToLower().Contains(lowerSearchTerm))))
+                    .OrderBy(c => c.CustomerName)
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving top {TopCount} customers by volume between {StartDate} and {EndDate}",
-                    topCount, startDate, endDate);
+                _logger.LogError(ex, "Error searching customers with term {SearchTerm}", searchTerm);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Customer>> GetCustomersWithOverduePaymentsAsync(int dayThreshold, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Customer>> GetCustomersByStatusAsync(bool isActive, CancellationToken cancellationToken = default)
         {
             try
             {
-                var cutoffDate = DateTime.Today.AddDays(-dayThreshold);
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                return await _dbSet
-                    .Include(c => c.Invoices)
-                    .Include(c => c.Payments)
+                return await context.Customers
+                    .AsNoTracking()
+                    .Where(c => c.IsActive == isActive)
+                    .OrderBy(c => c.CustomerName)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customers by status {IsActive}", isActive);
+                throw;
+            }
+        }
+
+        public async Task<(IEnumerable<Customer> Customers, int TotalCount)> GetCustomersPagedAsync(int pageNumber, int pageSize, string? searchTerm = null, bool? isActive = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Customers.AsNoTracking();
+
+                // Apply filters
+                if (isActive.HasValue)
+                    query = query.Where(c => c.IsActive == isActive.Value);
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var lowerSearchTerm = searchTerm.ToLower();
+                    query = query.Where(c => c.CustomerName.ToLower().Contains(lowerSearchTerm) ||
+                                           (c.PhoneNumber != null && c.PhoneNumber.Contains(searchTerm)) ||
+                                           (c.Address != null && c.Address.ToLower().Contains(lowerSearchTerm)));
+                }
+
+                // Get total count
+                var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
+
+                // Apply pagination
+                var customers = await query
+                    .OrderBy(c => c.CustomerName)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return (customers, totalCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving paged customers. Page: {PageNumber}, Size: {PageSize}, Search: {SearchTerm}, Active: {IsActive}",
+                    pageNumber, pageSize, searchTerm, isActive);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Business Intelligence and Reporting
+
+        public async Task<IEnumerable<(Customer Customer, decimal TotalPurchases, int InvoiceCount)>> GetTopCustomersAsync(int topCount, DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Customers
+                    .AsNoTracking()
+                    .Where(c => c.IsActive);
+
+                var invoiceQuery = context.Invoices.AsNoTracking();
+
+                if (fromDate.HasValue)
+                    invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    invoiceQuery = invoiceQuery.Where(i => i.InvoiceDate <= toDate.Value.Date.AddDays(1));
+
+                var topCustomers = await query
+                    .GroupJoin(invoiceQuery, c => c.CustomerId, i => i.CustomerId, (c, invoices) => new
+                    {
+                        Customer = c,
+                        TotalPurchases = invoices.Sum(i => i.FinalAmount),
+                        InvoiceCount = invoices.Count()
+                    })
+                    .Where(x => x.InvoiceCount > 0)
+                    .OrderByDescending(x => x.TotalPurchases)
+                    .Take(topCount)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return topCustomers.Select(tc => (tc.Customer, tc.TotalPurchases, tc.InvoiceCount));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving top {TopCount} customers from {FromDate} to {ToDate}",
+                    topCount, fromDate, toDate);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<(DateTime Date, decimal Amount)>> GetCustomerPurchaseHistoryAsync(int customerId, int monthsBack = 12, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var fromDate = DateTime.Today.AddMonths(-monthsBack);
+
+                var purchaseHistory = await context.Invoices
+                    .AsNoTracking()
+                    .Where(i => i.CustomerId == customerId && i.InvoiceDate >= fromDate)
+                    .GroupBy(i => new { Year = i.InvoiceDate.Year, Month = i.InvoiceDate.Month })
+                    .Select(g => new
+                    {
+                        Date = new DateTime(g.Key.Year, g.Key.Month, 1),
+                        Amount = g.Sum(i => i.FinalAmount)
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return purchaseHistory.Select(ph => (ph.Date, ph.Amount));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving purchase history for customer {CustomerId} for {MonthsBack} months",
+                    customerId, monthsBack);
+                throw;
+            }
+        }
+
+        public async Task<Dictionary<int, (decimal LastPayment, DateTime LastPaymentDate)>> GetCustomerLastPaymentInfoAsync(IEnumerable<int> customerIds, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var customerIdsList = customerIds.ToList();
+
+                var lastPayments = await context.Payments
+                    .AsNoTracking()
+                    .Where(p => customerIdsList.Contains(p.CustomerId))
+                    .GroupBy(p => p.CustomerId)
+                    .Select(g => new
+                    {
+                        CustomerId = g.Key,
+                        LastPayment = g.OrderByDescending(p => p.PaymentDate).First().Amount,
+                        LastPaymentDate = g.Max(p => p.PaymentDate)
+                    })
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return lastPayments.ToDictionary(lp => lp.CustomerId, lp => (lp.LastPayment, lp.LastPaymentDate));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving last payment info for customers {CustomerIds}", string.Join(",", customerIds));
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Account Aging and Collections
+
+        public async Task<IEnumerable<(Customer Customer, int DaysOutstanding, decimal Amount)>> GetAgedReceivablesAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var today = DateTime.Today;
+
+                var agedReceivables = await context.Customers
+                    .AsNoTracking()
+                    .Where(c => c.IsActive && c.TotalDebt > 0)
+                    .Select(c => new
+                    {
+                        Customer = c,
+                        LastInvoiceDate = c.Invoices.Max(i => i.InvoiceDate),
+                        Amount = c.TotalDebt
+                    })
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return agedReceivables.Select(ar => (
+                    ar.Customer,
+                    DaysOutstanding: (today - ar.LastInvoiceDate).Days,
+                    ar.Amount
+                )).OrderByDescending(x => x.DaysOutstanding);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving aged receivables");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<Customer>> GetCustomersWithOverdueAccountsAsync(int daysOverdue, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var cutoffDate = DateTime.Today.AddDays(-daysOverdue);
+
+                return await context.Customers
+                    .AsNoTracking()
                     .Where(c => c.IsActive &&
                                c.TotalDebt > 0 &&
-                               c.Invoices.Any(i => i.InvoiceDate <= cutoffDate) &&
-                               (!c.Payments.Any() || c.Payments.Max(p => p.PaymentDate) <= cutoffDate))
+                               c.Invoices.Any(i => i.InvoiceDate <= cutoffDate))
                     .OrderByDescending(c => c.TotalDebt)
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving customers with overdue payments (threshold: {DayThreshold} days)", dayThreshold);
+                _logger.LogError(ex, "Error retrieving customers with overdue accounts ({DaysOverdue} days)", daysOverdue);
                 throw;
             }
         }
 
-        public async Task<Dictionary<int, decimal>> GetCustomerDebtAgingReportAsync(CancellationToken cancellationToken = default)
+        public async Task<Dictionary<string, (int Count, decimal Amount)>> GetDebtAgingAnalysisAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _dbSet
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var today = DateTime.Today;
+                var customersWithDebt = await context.Customers
+                    .AsNoTracking()
                     .Where(c => c.IsActive && c.TotalDebt > 0)
-                    .ToDictionaryAsync(c => c.CustomerId, c => c.TotalDebt, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating customer debt aging report");
-                throw;
-            }
-        }
-
-        public async Task<bool> IsCustomerActiveAsync(int customerId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                return await _dbSet
-                    .AnyAsync(c => c.CustomerId == customerId && c.IsActive, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error checking if customer {CustomerId} is active", customerId);
-                throw;
-            }
-        }
-
-        public async Task<bool> HasOutstandingInvoicesAsync(int customerId, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var customer = await _dbSet
-                    .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
-                    .ConfigureAwait(false);
-
-                return customer != null && customer.TotalDebt > 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error checking outstanding invoices for customer {CustomerId}", customerId);
-                throw;
-            }
-        }
-
-        public async Task<decimal> GetCreditLimitUtilizationAsync(int customerId, decimal creditLimit, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var currentDebt = await GetCustomerBalanceAsync(customerId, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (creditLimit <= 0)
-                    return 0;
-
-                return (currentDebt / creditLimit) * 100;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating credit limit utilization for customer {CustomerId}", customerId);
-                throw;
-            }
-        }
-
-        public async Task<Dictionary<int, decimal>> GetMultipleCustomerBalancesAsync(IEnumerable<int> customerIds, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                return await _dbSet
-                    .Where(c => customerIds.Contains(c.CustomerId))
-                    .ToDictionaryAsync(c => c.CustomerId, c => c.TotalDebt, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving multiple customer balances");
-                throw;
-            }
-        }
-
-        public async Task<int> UpdateMultipleCustomerStatusAsync(IEnumerable<int> customerIds, bool isActive, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                var customers = await _dbSet
-                    .Where(c => customerIds.Contains(c.CustomerId))
+                    .Select(c => new
+                    {
+                        Customer = c,
+                        LastInvoiceDate = c.Invoices.Max(i => i.InvoiceDate),
+                        Debt = c.TotalDebt
+                    })
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                foreach (var customer in customers)
+                var agingAnalysis = new Dictionary<string, (int Count, decimal Amount)>
                 {
-                    customer.IsActive = isActive;
-                    customer.UpdatedDate = DateTime.Now;
+                    ["Current (0-30 days)"] = (0, 0),
+                    ["31-60 days"] = (0, 0),
+                    ["61-90 days"] = (0, 0),
+                    ["Over 90 days"] = (0, 0)
+                };
+
+                foreach (var customer in customersWithDebt)
+                {
+                    var daysOutstanding = (today - customer.LastInvoiceDate).Days;
+                    string category;
+
+                    if (daysOutstanding <= 30)
+                        category = "Current (0-30 days)";
+                    else if (daysOutstanding <= 60)
+                        category = "31-60 days";
+                    else if (daysOutstanding <= 90)
+                        category = "61-90 days";
+                    else
+                        category = "Over 90 days";
+
+                    agingAnalysis[category] = (
+                        agingAnalysis[category].Count + 1,
+                        agingAnalysis[category].Amount + customer.Debt
+                    );
                 }
 
-                _logger.LogDebug("Updated status for {CustomerCount} customers to {Status}",
-                    customers.Count, isActive ? "Active" : "Inactive");
-
-                return customers.Count;
+                return agingAnalysis;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating multiple customer status");
+                _logger.LogError(ex, "Error performing debt aging analysis");
                 throw;
             }
         }
 
-        public async Task<bool> ArchiveInactiveCustomerAsync(int customerId, int inactivityDayThreshold, CancellationToken cancellationToken = default)
+        #endregion
+
+        #region Validation and Business Rules
+
+        public async Task<bool> CustomerNameExistsAsync(string customerName, int? excludeCustomerId = null, CancellationToken cancellationToken = default)
         {
             try
             {
-                var cutoffDate = DateTime.Today.AddDays(-inactivityDayThreshold);
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                var customer = await _dbSet
-                    .Include(c => c.Invoices)
+                var query = context.Customers.AsNoTracking()
+                    .Where(c => c.CustomerName.ToLower() == customerName.ToLower());
+
+                if (excludeCustomerId.HasValue)
+                    query = query.Where(c => c.CustomerId != excludeCustomerId.Value);
+
+                return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if customer name {CustomerName} exists", customerName);
+                throw;
+            }
+        }
+
+        public async Task<bool> PhoneNumberExistsAsync(string phoneNumber, int? excludeCustomerId = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var query = context.Customers.AsNoTracking()
+                    .Where(c => c.PhoneNumber == phoneNumber);
+
+                if (excludeCustomerId.HasValue)
+                    query = query.Where(c => c.CustomerId != excludeCustomerId.Value);
+
+                return await query.AnyAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if phone number {PhoneNumber} exists", phoneNumber);
+                throw;
+            }
+        }
+
+        public async Task<bool> CanDeleteCustomerAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var hasTransactions = await context.Invoices
+                    .AsNoTracking()
+                    .AnyAsync(i => i.CustomerId == customerId, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var hasPayments = await context.Payments
+                    .AsNoTracking()
+                    .AnyAsync(p => p.CustomerId == customerId, cancellationToken)
+                    .ConfigureAwait(false);
+
+                return !hasTransactions && !hasPayments;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if customer {CustomerId} can be deleted", customerId);
+                throw;
+            }
+        }
+
+        public async Task<int> GetActiveCustomerCountAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                return await context.Customers
+                    .AsNoTracking()
+                    .CountAsync(c => c.IsActive, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting active customers");
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Account Reconciliation and Integrity
+
+        public async Task<IEnumerable<Customer>> GetCustomersWithBalanceDiscrepanciesAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var customersWithDiscrepancies = await context.Customers
+                    .AsNoTracking()
+                    .Select(c => new
+                    {
+                        Customer = c,
+                        CalculatedBalance = c.Invoices.Sum(i => i.FinalAmount) - c.Payments.Sum(p => p.Amount),
+                        StoredBalance = c.TotalDebt
+                    })
+                    .Where(x => Math.Abs(x.CalculatedBalance - x.StoredBalance) > 0.01m)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return customersWithDiscrepancies.Select(cwd => cwd.Customer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customers with balance discrepancies");
+                throw;
+            }
+        }
+
+        public async Task<bool> RecalculateCustomerBalanceAsync(int customerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+
+                var customer = await context.Customers
                     .FirstOrDefaultAsync(c => c.CustomerId == customerId, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (customer == null)
-                    return false;
-
-                var hasRecentActivity = customer.Invoices.Any(i => i.InvoiceDate >= cutoffDate);
-                var hasOutstandingDebt = customer.TotalDebt > 0;
-
-                if (!hasRecentActivity && !hasOutstandingDebt)
                 {
-                    customer.IsActive = false;
+                    _logger.LogWarning("Customer {CustomerId} not found for balance recalculation", customerId);
+                    return false;
+                }
+
+                var totalInvoices = await context.Invoices
+                    .AsNoTracking()
+                    .Where(i => i.CustomerId == customerId)
+                    .SumAsync(i => i.FinalAmount, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var totalPayments = await context.Payments
+                    .AsNoTracking()
+                    .Where(p => p.CustomerId == customerId)
+                    .SumAsync(p => p.Amount, cancellationToken)
+                    .ConfigureAwait(false);
+
+                var calculatedBalance = totalInvoices - totalPayments;
+
+                if (Math.Abs(customer.TotalDebt - calculatedBalance) > 0.01m)
+                {
+                    var oldBalance = customer.TotalDebt;
+                    customer.TotalDebt = calculatedBalance;
                     customer.UpdatedDate = DateTime.Now;
 
-                    _logger.LogInformation("Archived inactive customer {CustomerId} (no activity for {Days} days)",
-                        customerId, inactivityDayThreshold);
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+                    _logger.LogInformation("Recalculated balance for customer {CustomerId}. Old: {OldBalance}, New: {NewBalance}",
+                        customerId, oldBalance, calculatedBalance);
 
                     return true;
                 }
@@ -445,32 +807,59 @@ namespace PoultrySlaughterPOS.Services.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error archiving inactive customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error recalculating balance for customer {CustomerId}", customerId);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Customer>> GetCustomersForRetentionCampaignAsync(decimal minimumDebt, int daysSinceLastPurchase, CancellationToken cancellationToken = default)
+        public async Task<Dictionary<int, decimal>> RecalculateAllCustomerBalancesAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var cutoffDate = DateTime.Today.AddDays(-daysSinceLastPurchase);
+                using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
-                return await _dbSet
-                    .Include(c => c.Invoices)
-                    .Where(c => c.IsActive &&
-                               c.TotalDebt >= minimumDebt &&
-                               c.Invoices.Any() &&
-                               c.Invoices.Max(i => i.InvoiceDate) <= cutoffDate)
-                    .OrderByDescending(c => c.TotalDebt)
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                var allCustomers = await context.Customers.ToListAsync(cancellationToken).ConfigureAwait(false);
+                var adjustments = new Dictionary<int, decimal>();
+
+                foreach (var customer in allCustomers)
+                {
+                    var totalInvoices = await context.Invoices
+                        .AsNoTracking()
+                        .Where(i => i.CustomerId == customer.CustomerId)
+                        .SumAsync(i => i.FinalAmount, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var totalPayments = await context.Payments
+                        .AsNoTracking()
+                        .Where(p => p.CustomerId == customer.CustomerId)
+                        .SumAsync(p => p.Amount, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var calculatedBalance = totalInvoices - totalPayments;
+
+                    if (Math.Abs(customer.TotalDebt - calculatedBalance) > 0.01m)
+                    {
+                        adjustments[customer.CustomerId] = calculatedBalance - customer.TotalDebt;
+                        customer.TotalDebt = calculatedBalance;
+                        customer.UpdatedDate = DateTime.Now;
+                    }
+                }
+
+                if (adjustments.Any())
+                {
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    _logger.LogInformation("Recalculated balances for {Count} customers", adjustments.Count);
+                }
+
+                return adjustments;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving customers for retention campaign");
+                _logger.LogError(ex, "Error recalculating all customer balances");
                 throw;
             }
         }
+
+        #endregion
     }
 }
