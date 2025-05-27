@@ -72,24 +72,24 @@ namespace PoultrySlaughterPOS
             // Add configuration
             services.AddSingleton(configuration);
 
-            // Configure DbContext with factory pattern for Unit of Work
+            // Configure DbContext with scoped lifetime for UnitOfWork pattern
             services.AddDbContext<PoultryDbContext>(options =>
             {
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
                 options.EnableSensitiveDataLogging(false);
                 options.LogTo(Console.WriteLine, LogLevel.Warning);
-            });
+            }, ServiceLifetime.Scoped);
 
-            // Keep the factory pattern for other components that need it
+            // Configure DbContextFactory for BaseRepository implementations
             services.AddDbContextFactory<PoultryDbContext>(options =>
             {
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
                 options.EnableSensitiveDataLogging(false);
                 options.LogTo(Console.WriteLine, LogLevel.Warning);
                 options.EnableServiceProviderCaching(false);
-            });
+            }, ServiceLifetime.Scoped);
 
-            // Register repositories
+            // Register repositories with proper dependency injection patterns
             services.AddScoped<ITruckRepository, TruckRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IInvoiceRepository, InvoiceRepository>();
@@ -98,8 +98,15 @@ namespace PoultrySlaughterPOS
             services.AddScoped<IDailyReconciliationRepository, DailyReconciliationRepository>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
-            // Register Unit of Work
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            // Register Unit of Work with explicit factory registration for proper constructor injection
+            services.AddScoped<IUnitOfWork>(serviceProvider =>
+            {
+                var context = serviceProvider.GetRequiredService<PoultryDbContext>();
+                var contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<PoultryDbContext>>();
+                var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+
+                return new UnitOfWork(context, contextFactory, loggerFactory);
+            });
 
             // Register application services
             services.AddTransient<IDatabaseInitializationService, DatabaseInitializationService>();
@@ -108,7 +115,7 @@ namespace PoultrySlaughterPOS
             // Register UI components
             services.AddSingleton<MainWindow>();
 
-            // Configure logging
+            // Configure logging with Serilog integration
             services.AddLogging(builder =>
             {
                 builder.AddSerilog();

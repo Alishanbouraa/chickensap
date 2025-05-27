@@ -480,7 +480,8 @@ namespace PoultrySlaughterPOS.Services.Repositories
                 var variance = reconciliations.Average(r => Math.Pow((double)r.WastagePercentage - avgWastage, 2));
                 var standardDeviation = Math.Sqrt(variance);
 
-                var threshold = avgWastage + (standardDeviationThreshold * standardDeviation);
+                // Fixed: Cast standardDeviationThreshold to double for arithmetic operation
+                var threshold = avgWastage + ((double)standardDeviationThreshold * standardDeviation);
 
                 return reconciliations
                     .Where(r => (double)r.WastagePercentage > threshold)
@@ -492,7 +493,6 @@ namespace PoultrySlaughterPOS.Services.Repositories
                 throw;
             }
         }
-
         public async Task<Dictionary<int, List<DailyReconciliation>>> GetConsistentVariancePatternsByTruckAsync(decimal varianceThreshold, int dayRange, CancellationToken cancellationToken = default)
         {
             try

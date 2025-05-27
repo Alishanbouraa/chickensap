@@ -42,11 +42,11 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
         }
 
         public async Task<IEnumerable<Payment>> GetPagedAsync(
-            int pageNumber,
-            int pageSize,
-            Expression<Func<Payment, bool>>? filter = null,
-            Func<IQueryable<Payment>, IOrderedQueryable<Payment>>? orderBy = null,
-            CancellationToken cancellationToken = default)
+               int pageNumber,
+               int pageSize,
+               Expression<Func<Payment, bool>>? filter = null,
+               Func<IQueryable<Payment>, IOrderedQueryable<Payment>>? orderBy = null,
+               CancellationToken cancellationToken = default)
         {
             try
             {
@@ -56,12 +56,12 @@ namespace PoultrySlaughterPOS.Services.Repositories.Implementations
                 if (filter != null)
                     query = query.Where(filter);
 
-                if (orderBy != null)
-                    query = orderBy(query);
-                else
-                    query = query.OrderByDescending(p => p.PaymentDate);
+                // Fixed: Proper LINQ ordering with explicit type conversion
+                IOrderedQueryable<Payment> orderedQuery = orderBy != null
+                    ? orderBy(query)
+                    : query.OrderByDescending(p => p.PaymentDate);
 
-                return await query
+                return await orderedQuery
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync(cancellationToken)

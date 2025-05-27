@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient; // Fixed: Changed from System.Data.SqlClient
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 

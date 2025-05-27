@@ -16,6 +16,7 @@ namespace PoultrySlaughterPOS.Services.Repositories
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly PoultryDbContext _context;
+        private readonly IDbContextFactory<PoultryDbContext> _contextFactory;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<UnitOfWork> _logger;
         private IDbContextTransaction? _transaction;
@@ -35,17 +36,20 @@ namespace PoultrySlaughterPOS.Services.Repositories
 
         public UnitOfWork(
             PoultryDbContext context,
+            IDbContextFactory<PoultryDbContext> contextFactory,
             ILoggerFactory loggerFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
             _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             _logger = _loggerFactory.CreateLogger<UnitOfWork>();
 
             // Initialize lazy-loaded repositories with proper factory pattern
-            _trucks = new Lazy<ITruckRepository>(() => new TruckRepository(_context, _loggerFactory.CreateLogger<TruckRepository>()));
+            // Fixed: Pass IDbContextFactory instead of DbContext to BaseRepository implementations
+            _trucks = new Lazy<ITruckRepository>(() => new TruckRepository(_contextFactory, _loggerFactory.CreateLogger<TruckRepository>()));
             _customers = new Lazy<ICustomerRepository>(() => new CustomerRepository(_context, _loggerFactory.CreateLogger<CustomerRepository>()));
-            _invoices = new Lazy<IInvoiceRepository>(() => new InvoiceRepository(_context, _loggerFactory.CreateLogger<InvoiceRepository>()));
-            _payments = new Lazy<IPaymentRepository>(() => new PaymentRepository(_context, _loggerFactory.CreateLogger<PaymentRepository>()));
+            _invoices = new Lazy<IInvoiceRepository>(() => new InvoiceRepository(_contextFactory, _loggerFactory.CreateLogger<InvoiceRepository>()));
+            _payments = new Lazy<IPaymentRepository>(() => new PaymentRepository(_contextFactory, _loggerFactory.CreateLogger<PaymentRepository>()));
             _truckLoads = new Lazy<ITruckLoadRepository>(() => new TruckLoadRepository(_context, _loggerFactory.CreateLogger<TruckLoadRepository>()));
             _dailyReconciliations = new Lazy<IDailyReconciliationRepository>(() => new DailyReconciliationRepository(_context, _loggerFactory.CreateLogger<DailyReconciliationRepository>()));
             _auditLogs = new Lazy<IAuditLogRepository>(() => new AuditLogRepository(_context, _loggerFactory.CreateLogger<AuditLogRepository>()));
@@ -83,9 +87,6 @@ namespace PoultrySlaughterPOS.Services.Repositories
             _logger.LogDebug("Generic repository created for type {EntityType}", type.Name);
             return repository;
         }
-
-        // All other methods remain the same as in the previous implementation...
-        // (SaveChangesAsync, BeginTransactionAsync, CommitTransactionAsync, etc.)
 
         /// <summary>
         /// Saves all pending changes to the database with comprehensive error handling
