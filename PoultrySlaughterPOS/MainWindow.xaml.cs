@@ -725,7 +725,7 @@ namespace PoultrySlaughterPOS
             }
             catch (Exception handlingEx)
             {
-                _logger.LogFatal(handlingEx, "Critical error in error handling");
+                _logger.LogCritical(handlingEx, "Critical error in error handling service");
             }
 
             await Task.CompletedTask;

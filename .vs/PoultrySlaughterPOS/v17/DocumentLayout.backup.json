@@ -1,12 +1,530 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\viewmodels\\truckloadingviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\viewmodels\\truckloadingviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\data\\poultrydbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\data\\poultrydbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\models\\truck.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\models\\truck.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\models\\truckload.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\models\\truckload.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\auditlogrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\auditlogrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\customerrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\customerrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\dailyreconciliationrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\dailyreconciliationrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\invoicerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\invoicerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\paymentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\paymentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\truckloadrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\truckloadrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\implementations\\truckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\implementations\\truckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\interfaces\\ibaserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\interfaces\\ibaserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\interfaces\\baserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\interfaces\\baserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\iauditlogrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\iauditlogrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\icustomerrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\icustomerrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\idailyreconciliationrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\idailyreconciliationrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\iinvoicerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\iinvoicerepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\ipaymentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\ipaymentrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\itruckloadrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\itruckloadrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\specific\\itruckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\specific\\itruckrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\iunitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\iunitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\repositories\\unitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\repositories\\unitofwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\databaseinitializationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\databaseinitializationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\errorhandlingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\errorhandlingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\services\\navigationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\services\\navigationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|c:\\users\\$\\desktop\\poultryslaughterpos\\poultryslaughterpos\\views\\truckloadingview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{74BA1800-0731-4B37-BF61-825C300AE96A}|PoultrySlaughterPOS\\PoultrySlaughterPOS.csproj|solutionrelative:poultryslaughterpos\\views\\truckloadingview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "App.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\App.xaml.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\App.xaml.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\App.xaml.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\App.xaml.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAqwA0AAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:07.439Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\MainWindow.xaml.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAHIBAAAAAAAAAAAAAPYCAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:02.84Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TruckLoadingViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\ViewModels\\TruckLoadingViewModel.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\ViewModels\\TruckLoadingViewModel.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\ViewModels\\TruckLoadingViewModel.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\ViewModels\\TruckLoadingViewModel.cs",
+              "ViewState": "AgIAAK8BAAAAAAAAAAAwwNYBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:17.475Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PoultryDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Data\\PoultryDbContext.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Data\\PoultryDbContext.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Data\\PoultryDbContext.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Data\\PoultryDbContext.cs",
+              "ViewState": "AgIAABYBAAAAAAAAAAAYwBkBAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:55.369Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Truck.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Models\\Truck.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Models\\Truck.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Models\\Truck.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Models\\Truck.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:53.464Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "TruckLoad.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Models\\TruckLoad.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Models\\TruckLoad.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Models\\TruckLoad.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Models\\TruckLoad.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:52.292Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AuditLogRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\AuditLogRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\AuditLogRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\AuditLogRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\AuditLogRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:50.214Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CustomerRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\CustomerRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\CustomerRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\CustomerRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\CustomerRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:49.105Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "DailyReconciliationRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\DailyReconciliationRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\DailyReconciliationRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\DailyReconciliationRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\DailyReconciliationRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:48.058Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "InvoiceRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\InvoiceRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\InvoiceRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\InvoiceRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\InvoiceRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:46.778Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "PaymentRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\PaymentRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\PaymentRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\PaymentRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\PaymentRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:45.559Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "TruckLoadRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckLoadRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckLoadRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckLoadRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckLoadRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:44.388Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "TruckRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Implementations\\TruckRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:43.466Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "IBaseRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\IBaseRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\IBaseRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\IBaseRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\IBaseRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:42.013Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "BaseRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\BaseRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\BaseRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\BaseRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Interfaces\\BaseRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:40.887Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "IAuditLogRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IAuditLogRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IAuditLogRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IAuditLogRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IAuditLogRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:38.835Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "IDailyReconciliationRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IDailyReconciliationRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IDailyReconciliationRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IDailyReconciliationRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IDailyReconciliationRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:36.367Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "ICustomerRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ICustomerRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ICustomerRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ICustomerRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ICustomerRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:35.29Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "IInvoiceRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IInvoiceRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IInvoiceRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IInvoiceRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IInvoiceRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:34.117Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "IPaymentRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IPaymentRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IPaymentRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IPaymentRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\IPaymentRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:33.073Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "ITruckLoadRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckLoadRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckLoadRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckLoadRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckLoadRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:31.84Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "ITruckRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Specific\\ITruckRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:30.63Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "IRepository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\IRepository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\IRepository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\IRepository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\IRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:29.514Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "IUnitOfWork.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\IUnitOfWork.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\IUnitOfWork.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\IUnitOfWork.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\IUnitOfWork.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:27.276Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "Repository.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Repository.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\Repository.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\Repository.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\Repository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:25.934Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "UnitOfWork.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\UnitOfWork.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\Repositories\\UnitOfWork.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\Repositories\\UnitOfWork.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\Repositories\\UnitOfWork.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:24.528Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "DatabaseInitializationService.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\DatabaseInitializationService.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\DatabaseInitializationService.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\DatabaseInitializationService.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\DatabaseInitializationService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:22.994Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "ErrorHandlingService.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\ErrorHandlingService.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\ErrorHandlingService.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\ErrorHandlingService.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\ErrorHandlingService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:21.522Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "NavigationService.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\NavigationService.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Services\\NavigationService.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Services\\NavigationService.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Services\\NavigationService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:19.943Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "TruckLoadingView.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Views\\TruckLoadingView.xaml.cs",
+              "RelativeDocumentMoniker": "PoultrySlaughterPOS\\Views\\TruckLoadingView.xaml.cs",
+              "ToolTip": "C:\\Users\\$\\Desktop\\PoultrySlaughterPOS\\PoultrySlaughterPOS\\Views\\TruckLoadingView.xaml.cs",
+              "RelativeToolTip": "PoultrySlaughterPOS\\Views\\TruckLoadingView.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-28T06:55:15.251Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

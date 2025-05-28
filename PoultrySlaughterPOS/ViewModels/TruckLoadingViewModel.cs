@@ -13,7 +13,7 @@ namespace PoultrySlaughterPOS.ViewModels
     /// Advanced truck loading view model implementing comprehensive load management operations
     /// with real-time validation, business rule enforcement, and optimistic concurrency handling
     /// </summary>
-    public partial class TruckLoadingViewModel : ObservableObject
+    public partial class TruckLoadingViewModel : ObservableValidator
     {
         #region Private Fields
 
@@ -71,7 +71,7 @@ namespace PoultrySlaughterPOS.ViewModels
         private string _statusMessage = "جاري تحميل البيانات...";
 
         [ObservableProperty]
-        private bool _canCreateLoad = true;
+        private bool _canCreateLoadInternal = true;
 
         #endregion
 
@@ -87,14 +87,14 @@ namespace PoultrySlaughterPOS.ViewModels
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             // Initialize commands
-            CreateLoadCommand = new AsyncRelayCommand(CreateLoadAsync, CanCreateLoad);
+            CreateLoadCommand = new AsyncRelayCommand(CreateLoadAsync, CanCreateLoadMethod);
             RefreshDataCommand = new AsyncRelayCommand(RefreshDataAsync);
             ValidateInputCommand = new RelayCommand(ValidateInput);
             ClearFormCommand = new RelayCommand(ClearForm);
             DeleteLoadCommand = new AsyncRelayCommand<TruckLoad>(DeleteLoadAsync);
 
             // Subscribe to property changes for real-time validation
-            PropertyChanged += OnPropertyChanged;
+            PropertyChanged += OnPropertyChangedHandler;
 
             // Initialize data
             _ = InitializeAsync();
@@ -197,7 +197,7 @@ namespace PoultrySlaughterPOS.ViewModels
                 }
 
                 // Update command state
-                CanCreateLoad = ValidationErrors.Count == 0 && SelectedTruck != null && !IsLoading;
+                CanCreateLoadInternal = ValidationErrors.Count == 0 && SelectedTruck != null && !IsLoading;
                 CreateLoadCommand.NotifyCanExecuteChanged();
 
                 _logger.LogDebug("Input validation completed. Errors: {ErrorCount}", ValidationErrors.Count);
@@ -287,7 +287,7 @@ namespace PoultrySlaughterPOS.ViewModels
         /// </summary>
         private async Task CreateLoadAsync()
         {
-            if (!CanCreateLoad()) return;
+            if (!CanCreateLoadMethod()) return;
 
             try
             {
@@ -433,13 +433,13 @@ namespace PoultrySlaughterPOS.ViewModels
             LoadStatus = "LOADED";
             AverageWeightPerCage = 0;
             ValidationErrors.Clear();
-            CanCreateLoad = true;
+            CanCreateLoadInternal = true;
         }
 
         /// <summary>
         /// Determines if a new load can be created based on current state
         /// </summary>
-        private bool CanCreateLoad()
+        private bool CanCreateLoadMethod()
         {
             return !IsLoading &&
                    SelectedTruck != null &&
@@ -451,7 +451,7 @@ namespace PoultrySlaughterPOS.ViewModels
         /// <summary>
         /// Handles property change events for real-time validation
         /// </summary>
-        private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnPropertyChangedHandler(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (!IsValidationEnabled) return;
 
@@ -463,21 +463,6 @@ namespace PoultrySlaughterPOS.ViewModels
                 case nameof(Notes):
                     ValidateInput();
                     break;
-            }
-        }
-
-        #endregion
-
-        #region IDisposable Implementation
-
-        protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            base.OnPropertyChanged(e);
-
-            // Real-time validation trigger
-            if (IsValidationEnabled)
-            {
-                OnPropertyChanged(this, e);
             }
         }
 

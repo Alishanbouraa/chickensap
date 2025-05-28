@@ -275,7 +275,10 @@
 
                         <!-- Welcome Header -->
                         <Border Background="White" CornerRadius="12" Padding="40" 
-                              Margin="0,0,0,30" Effect="{StaticResource {x:Static SystemParameters.DropShadowEffectKey}}">
+                              Margin="0,0,0,30">
+                            <Border.Effect>
+                                <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="8" ShadowDepth="2" />
+                            </Border.Effect>
                             <StackPanel HorizontalAlignment="Center">
                                 <fa:ImageAwesome Icon="Home" Width="80" Height="80" 
                                                Foreground="{StaticResource PrimaryBrush}" 

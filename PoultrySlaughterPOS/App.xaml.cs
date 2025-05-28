@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using PoultrySlaughterPOS.Data;
 using PoultrySlaughterPOS.Repositories;
 using PoultrySlaughterPOS.Services;
@@ -133,7 +134,7 @@ namespace PoultrySlaughterPOS
                 .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
                 .Enrich.FromLogContext()
-                .Enrich.WithMachineName()
+                .Enrich.WithEnvironmentName()
                 .Enrich.WithEnvironmentUserName()
                 .Enrich.WithProcessId()
                 .Enrich.WithThreadId()
@@ -487,14 +488,14 @@ namespace PoultrySlaughterPOS
             try
             {
                 // Verify system resources and readiness
-                var healthCheckService = serviceProvider.GetService<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService>();
+                var healthCheckService = serviceProvider.GetService<HealthCheckService>();
 
                 if (healthCheckService != null)
                 {
                     var healthResult = await healthCheckService.CheckHealthAsync();
                     Log.Information("Health check status: {Status}", healthResult.Status);
 
-                    if (healthResult.Status != Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy)
+                    if (healthResult.Status != HealthStatus.Healthy)
                     {
                         Log.Warning("Application health check indicates potential issues");
                     }
